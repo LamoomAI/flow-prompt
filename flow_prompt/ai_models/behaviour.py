@@ -1,10 +1,10 @@
-
-from copy import copy
-from dataclasses import dataclass
 import logging
 import random
-from time import time
 import typing as t
+from copy import copy
+from dataclasses import dataclass
+from time import time
+
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.exceptions import BehaviourIsNotDefined
 
@@ -26,7 +26,9 @@ class PromptAttempts:
 
     def __post_init__(self):
         if self.count_of_retries is None:
-            self.count_of_retries = len(self.ai_models_behaviour.attempts) + int(bool(self.ai_models_behaviour.fallback_attempt))
+            self.count_of_retries = len(self.ai_models_behaviour.attempts) + int(
+                bool(self.ai_models_behaviour.fallback_attempt)
+            )
 
     def initialize_attempt(self, flag_increase_count: bool = True):
         if self.count > self.count_of_retries:
@@ -34,7 +36,9 @@ class PromptAttempts:
                 f"Count of retries {self.count_of_retries} exceeded {self.count}"
             )
 
-        sum_weight = sum([attempt.weight for attempt in self.ai_models_behaviour.attempts])
+        sum_weight = sum(
+            [attempt.weight for attempt in self.ai_models_behaviour.attempts]
+        )
         random_weight = random.randint(0, sum_weight)
         for attempt in self.ai_models_behaviour.attempts:
             random_weight -= attempt.weight

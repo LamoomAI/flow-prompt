@@ -2,16 +2,13 @@ import json
 import logging
 import typing as t
 
-from openai import AzureOpenAI, OpenAI
-from openai.types.chat import ChatCompletionMessageToolCall as ToolCall
-from openai.types.chat import ChatCompletionMessage as Message
-
 import server.settings as settings
+from openai import AzureOpenAI, OpenAI
+from openai.types.chat import ChatCompletionMessage as Message
+from openai.types.chat import ChatCompletionMessageToolCall as ToolCall
 from server.services.openai.keys import AzureOpenAIKey
-from server.services.openai.utils import (
-    openai_raise_custom_exception,
-    raise_openai_rate_limit_exception,
-)
+from server.services.openai.utils import (openai_raise_custom_exception,
+                                          raise_openai_rate_limit_exception)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +27,7 @@ class LamoomResponse:
     @property
     def response(self) -> str:
         return self.content
-    
+
     @property
     def message(self) -> str:
         return self.content

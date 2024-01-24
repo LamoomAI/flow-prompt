@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from urllib import request
+
 from flow_prompt.exceptions import NotFoundPromptException
 
 
@@ -14,7 +15,13 @@ class FlowPromptServiceResponse:
 class FlowPromptService:
     url: str = "https://flow-prompt.com/api/v1/"
 
-    def get_actual_prompt(self, api_token: str, prompt_id: str, prompt_data: dict = None, version: str = None) -> FlowPromptServiceResponse:
+    def get_actual_prompt(
+        self,
+        api_token: str,
+        prompt_id: str,
+        prompt_data: dict = None,
+        version: str = None,
+    ) -> FlowPromptServiceResponse:
         """
         Load prompt from flow-prompt
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:
@@ -40,4 +47,3 @@ class FlowPromptService:
             )
         else:
             raise NotFoundPromptException(response.json()["detail"])
-

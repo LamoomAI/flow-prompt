@@ -3,6 +3,7 @@ import logging
 import typing as t
 import uuid
 from dataclasses import dataclass
+
 from flow_prompt.exceptions import ValueIsNotResolvedException
 from flow_prompt.utils import resolve
 
@@ -54,7 +55,6 @@ class ChatMessage:
         return result
 
 
-
 # can be multiple value
 @dataclass
 class ChatsEntity:
@@ -77,7 +77,6 @@ class ChatsEntity:
     last_words: t.Optional[str] = None
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
-    
 
     def __post_init__(self):
         self._uuid = uuid.uuid4()

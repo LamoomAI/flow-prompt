@@ -1,12 +1,15 @@
-
-from dataclasses import dataclass
-from enum import Enum
 import logging
-from ..ai_model import AIModel, AI_MODELS_PROVIDER
 import typing as t
+from dataclasses import dataclass
 from decimal import Decimal
+from enum import Enum
+
 from openai import AzureOpenAI, OpenAI
-from flow_prompt.responses import FlowPromptResponse
+
+from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
+from flow_prompt.responses import OpenAIResponse
+
+from .utils import raise_openai_exception
 
 C_4K = 4096
 C_8K = 8192
@@ -22,7 +25,6 @@ class FamilyModel(Enum):
     chat = "GPT-3.5"
     gpt4 = "GPT-4"
     instruct_gpt = "InstructGPT"
-
 
 
 OPEN_AI_PRICING = {
@@ -72,7 +74,7 @@ class OpenAIModel(AIModel):
     @property
     def name(self) -> str:
         return self.model
-        
+
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
         return OPEN_AI_PRICING[self.family][self.max_tokens][
@@ -89,8 +91,8 @@ class OpenAIModel(AIModel):
         return {
             "model": self.provider.engine.model,
         }
-    
-    def call(self, *args, **kwargs) -> FlowPromptResponse:
+
+    def call(self, *args, **kwargs) -> OpenAIResponse:
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
             return self.call_chat_completion(**kwargs)
         raise NotImplementedError(f"family {self.family} is not implemented")
@@ -101,7 +103,7 @@ class OpenAIModel(AIModel):
             api_key=kwargs.pop("api_key", None),
             base_url=kwargs.pop("api_base", "https://api.openai.com"),
         )
-    
+
     def call_chat_completion(
         self,
         max_tokens: t.Optional[int],
@@ -109,7 +111,7 @@ class OpenAIModel(AIModel):
         functions: t.List[t.Dict[str, str]] = None,
         provider_params: t.Dict[str, str] = None,
         **kwargs,
-    ) -> FlowPromptResponse:
+    ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self._max_model)
         common_args = {
             "top_p": 1,
@@ -132,7 +134,7 @@ class OpenAIModel(AIModel):
             result = client.chat.completions.create(
                 **kwargs,
             )
-            return FlowPromptResponse(
+            return OpenAIResponse(
                 finish_reason=result.choices[0].finish_reason,
                 message=result.choices[0].message,
                 conent=result.choices[0].message.content,
@@ -142,7 +144,6 @@ class OpenAIModel(AIModel):
             raise_openai_exception(e)
 
 
-
 @dataclass
 class AzureAIModel(OpenAIModel):
     realm: t.Optional[str]
@@ -150,8 +151,8 @@ class AzureAIModel(OpenAIModel):
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.AZURE
 
     def name(self) -> str:
-        return f'{self.deployment_name}-{self.realm}'
-    
+        return f"{self.deployment_name}-{self.realm}"
+
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
             "model": self.deployment_name,

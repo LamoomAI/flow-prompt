@@ -1,25 +1,26 @@
-from collections import defaultdict
-from dataclasses import dataclass
 import logging
 import typing as t
-import tiktoken
-from flow_prompt.prompt.chat import ChatMessage, ChatsEntity
-from flow_prompt.prompt.pipe_prompt import BasePrompt 
-from flow_prompt import settings
+from collections import defaultdict
 from dataclasses import dataclass, field
-from flow_prompt.exceptions import NotEnoughBudgetException
 
+import tiktoken
+
+from flow_prompt import settings
+from flow_prompt.exceptions import NotEnoughBudgetException
+from flow_prompt.prompt.chat import ChatMessage, ChatsEntity
+from flow_prompt.prompt.pipe_prompt import BasePrompt
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class State:
-    '''
+    """
     State of the prompt. left_budget is the budget left for the rest of the prompt.
-    fully_fitted_pipitas is the set of labels of chats that were fully fitted in the prompt. 
+    fully_fitted_pipitas is the set of labels of chats that were fully fitted in the prompt.
     Pipita references to a small part of pipe, formed with a Spanish ending 'ita' which means a smaller version.
-    '''
+    """
+
     left_budget: int = 0
     fully_fitted_pipitas: t.Set[str] = field(default_factory=set)
     references: t.Dict[str, t.List[str]] = field(
@@ -42,11 +43,7 @@ class CallingMessages:
         logger.debug(f"[CallingMessages]: exclude_functions: {exclude_functions}")
         result = []
         for m in self.messages:
-            if (
-                m.is_empty()
-                or exclude_functions
-                and m.tool_calls
-            ):
+            if m.is_empty() or exclude_functions and m.tool_calls:
                 continue
             result.append(m.to_dict())
         return result
@@ -270,4 +267,3 @@ class UserPrompt(BasePrompt):
 
     def to_dict(self) -> dict:
         return [chat_value.to_dict() for chat_value in self.pipe]
-

@@ -1,4 +1,5 @@
-from flow_prompt.exceptions import RetryableCustomException, FlowPromptException
+from flow_prompt.exceptions import (FlowPromptException,
+                                    RetryableCustomException)
 
 
 class OpenAIChunkedEncodingError(RetryableCustomException):
@@ -24,15 +25,19 @@ class OpenAIInternalException(RetryableCustomException):
 class OpenAiRateLimitException(RetryableCustomException):
     pass
 
+
 class OpenAiPermissionDeniedError(RetryableCustomException):
     pass
+
 
 class OpenAIUnknownException(RetryableCustomException):
     pass
 
+
 ### Not retryable exceptions ###
 class OpenAIInvalidRequestError(FlowPromptException):
     pass
+
 
 class OpenAIBadRequestException(FlowPromptException):
     pass

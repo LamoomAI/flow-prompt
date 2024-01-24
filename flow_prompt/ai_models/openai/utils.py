@@ -1,20 +1,15 @@
-
-import request
-import openai
 import logging
 from urllib import request
-from .exceptions import (
-    OpenAIUnknownException,
-    OpenAiRateLimitException,
-    OpenAIInternalException,
-    OpenAIInvalidRequestError,
-    OpenAIAuthenticationError,
-    OpenAIResponseWasFilteredError,
-    OpenAITimeoutException,
-    OpenAIChunkedEncodingError,
-    OpenAiPermissionDeniedError,
-    OpenAIBadRequestException,
-)
+
+import openai
+import request
+
+from .exceptions import (OpenAIAuthenticationError, OpenAIBadRequestException,
+                         OpenAIChunkedEncodingError, OpenAIInternalException,
+                         OpenAIInvalidRequestError,
+                         OpenAiPermissionDeniedError, OpenAiRateLimitException,
+                         OpenAIResponseWasFilteredError,
+                         OpenAITimeoutException, OpenAIUnknownException)
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +31,16 @@ def raise_openai_exception(
         raise OpenAIInvalidRequestError()
     if isinstance(exc, openai.RateLimitError):
         raise OpenAiRateLimitException()
-    
+
     if isinstance(exc, openai.AuthenticationError):
         raise OpenAIAuthenticationError()
-    
+
     if isinstance(exc, openai.InternalServerError):
         raise OpenAIInternalException()
-    
+
     if isinstance(exc, openai.PermissionDeniedError):
         raise OpenAiPermissionDeniedError()
-    
+
     if isinstance(exc, openai.APIStatusError):
         raise OpenAIBadRequestException()
 

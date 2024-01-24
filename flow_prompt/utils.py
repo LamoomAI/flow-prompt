@@ -1,13 +1,11 @@
 import logging
-import os
-
+import typing as t
+from time import time
 
 from flow_prompt import settings
 
-from time import time
-import typing as t
-
 logger = logging.getLogger(__name__)
+
 
 def curr_timestamp_in_ms():
     return int(time() * 1000)

@@ -1,13 +1,14 @@
-from flow_prompt.ai_models.ai_model import AIModel
-from dataclasses import dataclass
 import typing as t
+from dataclasses import dataclass
+
+from flow_prompt.ai_models.ai_model import AIModel
 
 
 @dataclass
 class AttemptToCall:
     ai_model: AIModel
     weight: int = 1  # from 1 to 100, the higher weight the more often it will be called
-    # if you wish to limit functions that can be used, or to turn off calling openai functions for this attempt: 
+    # if you wish to limit functions that can be used, or to turn off calling openai functions for this attempt:
     # [] - if empty list of functions, functions are not supported for that call
     # None - if None, no limitations on functions
     # ['function1', 'function2'] - if list of functions, only those functions will be called
@@ -35,9 +36,9 @@ class AttemptToCall:
         if self.functions is None:
             return None
         return self.functions
-    
+
     def model_max_tokens(self) -> int:
         return self.ai_model.max_tokens
-    
+
     def model_encoding(self) -> str:
         return self.ai_model.tiktoken_encoding

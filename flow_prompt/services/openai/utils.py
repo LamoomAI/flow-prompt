@@ -2,20 +2,17 @@ import logging
 
 import openai
 import requests
-
-from flow_prompt.exceptions import (
-    OpenAIUnknownException,
-    OpenAiOverloadedException,
-    OpenAiRateLimitException,
-    OpenAIWrongAuth,
-    OpenAIInternalException,
-    OpenAIInvalidRequestError,
-    OpenAIResponseWasFilteredError,
-    OpenAITimeoutException,
-    OpenAIChunkedEncodingError,
-    CustomException,
-)
 from server.utils import curr_timestamp_in_ms
+
+from flow_prompt.exceptions import (CustomException,
+                                    OpenAIChunkedEncodingError,
+                                    OpenAIInternalException,
+                                    OpenAIInvalidRequestError,
+                                    OpenAiOverloadedException,
+                                    OpenAiRateLimitException,
+                                    OpenAIResponseWasFilteredError,
+                                    OpenAITimeoutException,
+                                    OpenAIUnknownException, OpenAIWrongAuth)
 
 logger = logging.getLogger(__name__)
 

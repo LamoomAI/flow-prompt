@@ -1,5 +1,7 @@
 from enum import Enum
-from flow_prompt.ai_models.ai_model import C_128K, C_32K, C_4K, M_DAVINCI, AIModel, FamilyModel, OpenAIModel
+
+from flow_prompt.ai_models.ai_model import (C_4K, C_32K, C_128K, M_DAVINCI,
+                                            AIModel, FamilyModel, OpenAIModel)
 
 
 class AI_MODELS(Enum):

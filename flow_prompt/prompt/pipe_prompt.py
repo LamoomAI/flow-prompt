@@ -1,16 +1,16 @@
-from collections import defaultdict
-from copy import deepcopy
-from dataclasses import dataclass
 import logging
 import typing as t
+from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass, field
+
+from flow_prompt import PIPE_PROMPTS
+from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.prompt.chat import ChatCondition, ChatsEntity
 from flow_prompt.prompt.user_prompt import UserPrompt
-from dataclasses import dataclass, field
-from flow_prompt.ai_models.attempt_to_call import AttemptToCall
-from flow_prompt import PIPE_PROMPTS
-
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass(kw_only=True)
 class BasePrompt:
@@ -73,11 +73,12 @@ class BasePrompt:
 
 @dataclass(kw_only=True)
 class PipePrompt(BasePrompt):
-    '''
+    """
     PipePrompt is a class that represents a pipe of chats that will be used to generate a prompt.
     You can add chats with different priorities to the pipe thinking just about the order of chats.
     When you initialize a Prompt, chats will be sorted by priority and then by order of adding.
-    '''
+    """
+
     id: str
     max_sample_rokens: int = None
     min_sample_tokens: int = None
@@ -86,7 +87,6 @@ class PipePrompt(BasePrompt):
     def __post_init__(self):
         PIPE_PROMPTS[self.id] = self
 
-
     def create_prompt(self, ai_attempt: AttemptToCall) -> UserPrompt:
         return UserPrompt(
             pipe=deepcopy(self.pipe),
@@ -94,5 +94,3 @@ class PipePrompt(BasePrompt):
             model_encoding=ai_attempt.model_encoding(),
             model_max_tokens=ai_attempt.model_max_tokens(),
         )
-    
- 

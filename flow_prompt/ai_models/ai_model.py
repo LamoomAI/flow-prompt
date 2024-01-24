@@ -1,15 +1,13 @@
-
-
+import typing as t
 from dataclasses import dataclass
 from enum import Enum
-import typing as t
+
 from _decimal import Decimal
 
 
 class AI_MODELS_PROVIDER(Enum):
-    OPENAI = 'openai'
-    AZURE = 'azure'
-
+    OPENAI = "openai"
+    AZURE = "azure"
 
 
 @dataclass
@@ -22,7 +20,7 @@ class AIModel:
 
     @property
     def name(self) -> str:
-        return 'undefined_aimodel'
+        return "undefined_aimodel"
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
@@ -31,10 +29,9 @@ class AIModel:
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
         raise NotImplementedError
-    
+
     def get_params(self) -> t.Dict[str, t.Any]:
         return {}
-    
+
     def call(self, *args, **kwargs):
         raise NotImplementedError
-    
