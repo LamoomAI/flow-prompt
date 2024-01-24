@@ -1,0 +1,4 @@
+API_TOKEN = None
+OPENAI_API_KEY = None
+OPENAI_ORG = None
+AZURE_KEYS = None

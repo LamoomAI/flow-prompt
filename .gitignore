@@ -1,0 +1,9 @@
+.venv/*
+*.pyc
+*__pycache__/*
+.env
+dist
+.idea
+.venv
+.coverage
+.DS_Store
