@@ -2,12 +2,10 @@ import logging
 import typing as t
 from time import time
 
-from flow_prompt import settings
-
 logger = logging.getLogger(__name__)
 
 
-def curr_timestamp_in_ms():
+def current_timestamp_ms():
     return int(time() * 1000)
 
 

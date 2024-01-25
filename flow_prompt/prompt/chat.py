@@ -2,7 +2,7 @@ import json
 import logging
 import typing as t
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from flow_prompt.exceptions import ValueIsNotResolvedException
 from flow_prompt.utils import resolve
@@ -21,12 +21,27 @@ class ChatCondition:
     if_exists: t.Optional[str] = None
     if_not_exist: t.Optional[str] = None
 
+    def dump(self):
+        return {
+            "if_exists": self.if_exists,
+            "if_not_exist": self.if_not_exist,
+        }
+    
+    @classmethod
+    def load(cls, data):
+        return cls(
+            if_exists=data.get("if_exists"),
+            if_not_exist=data.get("if_not_exist"),
+        )
+
 
 class ChatMessage:
     role: str
     content: str
     name: t.Optional[str] = None
     tool_calls: t.Dict[str, str]
+    ref_name: t.Optional[str] = None
+    ref_value: t.Optional[str] = None
 
     def is_not_empty(self):
         return bool(self.content or self.tool_calls)
@@ -56,7 +71,7 @@ class ChatMessage:
 
 
 # can be multiple value
-@dataclass
+@dataclass(kw_only=True)
 class ChatsEntity:
     content: str = ""
     role: str = "user"
@@ -66,8 +81,7 @@ class ChatsEntity:
     required: bool = False
     is_multiple: bool = False
     while_fits: bool = False
-    condition: ChatCondition = ChatCondition()
-    call_lambda: t.Optional[t.Callable] = None
+    condition: ChatCondition = field(default_factory=ChatCondition)
     add_in_reverse_order: bool = False
     in_one_message: bool = False
     continue_if_doesnt_fit: bool = False
@@ -79,7 +93,7 @@ class ChatsEntity:
     ref_value: t.Optional[str] = None
 
     def __post_init__(self):
-        self._uuid = uuid.uuid4()
+        self._uuid = uuid.uuid4().hex
 
     def resolve(self, context: t.Dict[str, t.Any]) -> t.List[ChatMessage]:
         result = []
@@ -132,8 +146,6 @@ class ChatsEntity:
     def get_values(self, context: t.Dict[str, str]) -> t.List[ChatMessage]:
         try:
             values = self.resolve(context)
-            if self.call_lambda:
-                values = self.call_lambda(values)
             self.validate(values, context)
         except Exception as e:
             logger.error(
@@ -141,3 +153,50 @@ class ChatsEntity:
             )
             return []
         return values
+    
+    def dump(self):
+        return {
+            "content": self.content,
+            "role": self.role,
+            "name": self.name,
+            "tool_calls": self.tool_calls,
+            "priority": self.priority,
+            "required": self.required,
+            "is_multiple": self.is_multiple,
+            "while_fits": self.while_fits,
+            "condition": self.condition.dump(),
+            "add_in_reverse_order": self.add_in_reverse_order,
+            "in_one_message": self.in_one_message,
+            "continue_if_doesnt_fit": self.continue_if_doesnt_fit,
+            "add_if_fitted": self.add_if_fitted,
+            "label": self.label,
+            "presentation": self.presentation,
+            "last_words": self.last_words,
+            "ref_name": self.ref_name,
+            "ref_value": self.ref_value,
+        }
+
+    @classmethod
+    def load(cls, data):
+        return cls(
+            content=data.get("content"),
+            role=data.get("role"),
+            name=data.get("name"),
+            tool_calls=data.get("tool_calls"),
+            priority=data.get("priority"),
+            required=data.get("required"),
+            is_multiple=data.get("is_multiple"),
+            while_fits=data.get("while_fits"),
+            condition=ChatCondition.load(data.get("condition")),
+            add_in_reverse_order=data.get("add_in_reverse_order"),
+            in_one_message=data.get("in_one_message"),
+            continue_if_doesnt_fit=data.get("continue_if_doesnt_fit"),
+            add_if_fitted=data.get("add_if_fitted"),
+            label=data.get("label"),
+            presentation=data.get("presentation"),
+            last_words=data.get("last_words"),
+            ref_name=data.get("ref_name"),
+            ref_value=data.get("ref_value"),
+        )
+
+

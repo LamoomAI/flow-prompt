@@ -3,12 +3,18 @@ import typing as t
 from dataclasses import dataclass
 from decimal import Decimal
 
-from flow_prompt import PIPE_PROMPTS, secrets, settings
+from openai import OpenAI, AzureOpenAI
+
+from flow_prompt import secrets, settings
+from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
+from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
 from flow_prompt.exceptions import RetryableCustomException
 from flow_prompt.prompt.pipe_prompt import PipePrompt
-from flow_prompt.responses import FlowResponse
+from flow_prompt.prompt.user_prompt import UserPrompt
+from flow_prompt.responses import AIResponse
 from flow_prompt.services.flow_prompt import FlowPromptService
+from flow_prompt.utils import current_timestamp_ms
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +22,29 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FlowPrompt:
     api_token: str = secrets.API_TOKEN
-    total_price: Decimal = Decimal(0)
     openai_api_key: str = secrets.OPENAI_API_KEY
     openai_org: str = secrets.OPENAI_ORG
     azure_keys: t.Dict[str, str] = secrets.AZURE_KEYS
+
+    def __post_init__(self):
+        if self.openai_api_key:
+            openai_client = OpenAI(
+                organization=self.openai_org,
+                api_key=self.openai_api_key,
+            )
+            logger.info(f"Initialized OpenAI client: {openai_client}")
+            settings.AI_CLIENTS[AI_MODELS_PROVIDER.OPENAI] = openai_client
+        if self.azure_keys:
+            settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE] = {}
+            for realm, key_data in self.azure_keys.items():
+                if realm in settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE]:
+                    raise Exception(f"Realm {realm} already exists")
+                settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE][realm] = AzureOpenAI(
+                    api_version=key_data.get("api_version", "2023-07-01-preview"),
+                    azure_endpoint=key_data["url"],
+                    api_key=key_data["key"],
+                )
+                logger.info(f"Initialized Azure client for {realm} {key_data['url']}")
 
     def call(
         self,
@@ -29,27 +54,39 @@ class FlowPrompt:
         params: t.Dict[str, t.Any] = {},
         version: str = None,
         count_of_retries: int = None,
-    ) -> FlowResponse:
+    ) -> AIResponse:
         """
         Call flow prompt with context and behaviour
         """
+        start_time = current_timestamp_ms()
+        total_price = Decimal(0)
         pipe_prompt = self.get_pipe_prompt(prompt_id, version)
         prompt_attempts = PromptAttempts(behaviour, count_of_retries=count_of_retries)
 
         while prompt_attempts.initialize_attempt():
-            user_prompt = pipe_prompt.create_prompt(
-                context, prompt_attempts.current_attempt.ai_model
-            )
+            current_attempt = prompt_attempts.current_attempt
+            logger.info(f"Calling {prompt_id}. Attempt {prompt_attempts.current_attempt}")
+            user_prompt = pipe_prompt.create_prompt(current_attempt)
             calling_messages = user_prompt.resolve(context)
             try:
-                result = prompt_attempts.current_attempt.ai_model.call(
-                    calling_messages, params
+                result = current_attempt.ai_model.call(
+                    calling_messages.get_messages(), calling_messages.max_sample_budget, **params
                 )
-                price_of_call = self.price(
-                    self.calculate_budget_for_text(result.get_message_str()),
+                price_of_call = self.get_price(
+                    current_attempt,
+                    self.calculate_budget_for_text(user_prompt, result.get_message_str()),
                     calling_messages.prompt_budget,
                 )
-                self.total_price += price_of_call
+                self.save_user_interaction(
+                    pipe_prompt.dump(),
+                    context,
+                    result,
+                    {
+                        "attempt_number": current_attempt.attempt_number,
+                        "price": price_of_call,
+                        "latency": current_timestamp_ms() - start_time,
+                    },
+                )
                 return result
             except RetryableCustomException as e:
                 logger.warning(f"Retryable error: {e}")
@@ -66,9 +103,9 @@ class FlowPrompt:
         """
         if settings.USE_API_SERVICE is not None:
             prompt_data = None
-            prompt = PIPE_PROMPTS.get(prompt_id)
+            prompt = settings.PIPE_PROMPTS.get(prompt_id)
             if prompt is None:
-                prompt_data = prompt.to_dict()
+                prompt_data = prompt.dump()
             response = FlowPromptService.get_actual_prompt(
                 self.api_token, prompt_id, prompt_data, version
             )
@@ -77,22 +114,32 @@ class FlowPrompt:
             else:
                 return PipePrompt.from_dict(response.actual_prompt)
         else:
-            return PIPE_PROMPTS[prompt_id]
+            return settings.PIPE_PROMPTS[prompt_id]
+        
+    def save_user_interaction(self, prompt_data: dict, context: dict[str, t.Any], result: AIResponse, metrics: dict[str, t.Any] = {}) -> None:
+        """
+        Save user interaction to flow-prompt
+        """
+        if settings.USE_API_SERVICE is not None:
+            FlowPromptService.save_user_interaction(
+                self.api_token, prompt_data, context, result, metrics
+            )
 
-    def calculate_budget_for_text(self, text: str) -> int:
+    def calculate_budget_for_text(self,  user_prompt: UserPrompt, text: str) -> int:
         if not text:
             return 0
-        return len(self.user_prompt.encode(text))
+        return len(user_prompt.encoding.encode(text))
 
     def _decimal(self, value) -> Decimal:
         return Decimal(value).quantize(Decimal(".00001"))
 
-    def get_price(self, tokens_budget) -> Decimal:
+    def get_price(self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int) -> Decimal:
         return self._decimal(
-            tokens_budget
-            * self.attempt.model_provider.engine.price_per_prompt_1k_tokens
+            prompt_budget
+            * attempt.ai_model.price_per_prompt_1k_tokens
+            / 1000
+        ) +   self._decimal(
+            sample_budget
+            * attempt.ai_model.price_per_sample_1k_tokens
             / 1000
         )
-
-    def price(self, sample_budget: int, prompt_budget: int) -> Decimal:
-        return self.get_price(prompt_budget) + self.get_price(sample_budget)

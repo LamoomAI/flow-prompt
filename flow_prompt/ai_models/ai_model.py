@@ -4,15 +4,16 @@ from enum import Enum
 
 from _decimal import Decimal
 
+from flow_prompt.responses import AIResponse
+
 
 class AI_MODELS_PROVIDER(Enum):
     OPENAI = "openai"
     AZURE = "azure"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AIModel:
-    family: str
     max_tokens: int
     tiktoken_encoding: t.Optional[str] = "cl100k_base"
     provider: AI_MODELS_PROVIDER = None
@@ -33,5 +34,5 @@ class AIModel:
     def get_params(self) -> t.Dict[str, t.Any]:
         return {}
 
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> AIResponse:
         raise NotImplementedError

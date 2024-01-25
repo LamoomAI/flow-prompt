@@ -2,14 +2,19 @@ import logging
 from urllib import request
 
 import openai
-import request
 
-from .exceptions import (OpenAIAuthenticationError, OpenAIBadRequestException,
-                         OpenAIChunkedEncodingError, OpenAIInternalException,
-                         OpenAIInvalidRequestError,
-                         OpenAiPermissionDeniedError, OpenAiRateLimitException,
-                         OpenAIResponseWasFilteredError,
-                         OpenAITimeoutException, OpenAIUnknownException)
+from .exceptions import (
+    OpenAIAuthenticationError,
+    OpenAIBadRequestException,
+    OpenAIChunkedEncodingError,
+    OpenAIInternalException,
+    OpenAIInvalidRequestError,
+    OpenAiPermissionDeniedError,
+    OpenAiRateLimitException,
+    OpenAIResponseWasFilteredError,
+    OpenAITimeoutException,
+    OpenAIUnknownException,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@ class AttemptToCall:
     def __post_init__(self):
         self.id = (
             f"{self.ai_model.name}"
-            f"{self.attempt_number}-"
+            f"-n{self.attempt_number}-"
             f"{self.ai_model.provider.value}"
         )
 
@@ -40,5 +40,5 @@ class AttemptToCall:
     def model_max_tokens(self) -> int:
         return self.ai_model.max_tokens
 
-    def model_encoding(self) -> str:
+    def tiktoken_encoding(self) -> str:
         return self.ai_model.tiktoken_encoding

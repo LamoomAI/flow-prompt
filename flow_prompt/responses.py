@@ -4,9 +4,10 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AIResponse:
     _response: str = ""
+    original_result: object = None
 
     @property
     def response(self) -> str:

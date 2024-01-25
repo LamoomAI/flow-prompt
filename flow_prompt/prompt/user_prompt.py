@@ -7,8 +7,8 @@ import tiktoken
 
 from flow_prompt import settings
 from flow_prompt.exceptions import NotEnoughBudgetException
+from flow_prompt.prompt.base_prompt import BasePrompt
 from flow_prompt.prompt.chat import ChatMessage, ChatsEntity
-from flow_prompt.prompt.pipe_prompt import BasePrompt
 
 logger = logging.getLogger(__name__)
 
@@ -34,16 +34,16 @@ class CallingMessages:
     prompt_budget: int = 0
     left_budget: int = 0
     references: t.Dict[str, t.List[str]] = None
+    max_sample_budget: int = 0
 
     @property
     def calling_messages(self) -> t.List[t.Dict[str, str]]:
         return [m.to_dict() for m in self.messages if not m.is_empty()]
 
-    def get_messages(self, exclude_functions: bool = False) -> t.List[t.Dict[str, str]]:
-        logger.debug(f"[CallingMessages]: exclude_functions: {exclude_functions}")
+    def get_messages(self) -> t.List[t.Dict[str, str]]:
         result = []
         for m in self.messages:
-            if m.is_empty() or exclude_functions and m.tool_calls:
+            if m.is_empty():
                 continue
             result.append(m.to_dict())
         return result
@@ -55,21 +55,23 @@ class CallingMessages:
 @dataclass(kw_only=True)
 class UserPrompt(BasePrompt):
     model_max_tokens: int
-    model_encoding: str
-    expected_response_length: int = settings.DEFAULT_ANSWER_BUDGET
+    tiktoken_encoding: str
+    min_sample_tokens: int
+    max_sample_tokens: int = None
+    safe_gap_tokens: int = settings.SAFE_GAP_TOKENS
 
     def __post_init__(self):
-        self.encoding = tiktoken.get(self.model_encoding)
+        self.encoding = tiktoken.get_encoding(self.tiktoken_encoding)
 
     def resolve(self, context: t.Dict) -> CallingMessages:
         pipe = {}
         prompt_budget = 0
-        ordered_pipe = dict((value._uuid, i) for i, value in enumerate(self.pipe))
+        ordered_pipe = dict((value, i) for i, value in enumerate(self.pipe))
         state = State()
         state.left_budget = self.left_budget
         for priority in sorted(self.priorities.keys()):
             for chat_value in self.priorities[priority]:
-                r = [p in state.fully_fitted_pipitas for p in chat_value.add_if_fitted]
+                r = [p in state.fully_fitted_pipitas for p in (chat_value.add_if_fitted or [])]
                 if not all(r):
                     continue
 
@@ -83,6 +85,7 @@ class UserPrompt(BasePrompt):
                     )
 
                 values = chat_value.get_values(context)
+                logger.debug(f'Got values for {chat_value}: {values}')
                 if not values:
                     continue
                 if chat_value.in_one_message:
@@ -101,11 +104,20 @@ class UserPrompt(BasePrompt):
                         state.fully_fitted_pipitas.add(chat_value.label)
 
                 if not messages:
+                    logger.debug(
+                        f"messages is empty for {chat_value}"
+                    )
                     continue
                 if not self.is_enough_budget(state, messages_budget):
+                    logger.debug(
+                        f"not enough budget for {chat_value}"
+                    )
                     if chat_value.required:
                         raise NotEnoughBudgetException("Not enough budget")
                     continue
+                logger.debug(
+                    f"adding {len(messages)} messages for {chat_value}"
+                )
                 state.left_budget -= messages_budget
                 prompt_budget += messages_budget
                 if chat_value.presentation:
@@ -123,11 +135,15 @@ class UserPrompt(BasePrompt):
         flat_list: t.List[ChatMessage] = [
             item for sublist in final_pipe_with_order for item in sublist if item
         ]
+        max_sample_budget = left_budget = state.left_budget + self.min_sample_tokens
+        if self.max_sample_tokens:
+            max_sample_budget = min(self.max_sample_tokens, left_budget)
         return CallingMessages(
             references=state.references,
             messages=flat_list,
             prompt_budget=prompt_budget,
-            left_budget=state.left_budget + self.EXPECTED_RESPONSE,
+            left_budget=left_budget,
+            max_sample_budget=max_sample_budget,
         )
 
     def add_values_while_fits(
@@ -225,14 +241,14 @@ class UserPrompt(BasePrompt):
 
     @property
     def left_budget(self) -> int:
-        return self.model_max - self.EXPECTED_RESPONSE - self.SAFE_GAP_TOKENS
+        return self.model_max_tokens - self.min_sample_tokens - self.safe_gap_tokens
 
     def calculate_budget_for_value(self, value: ChatMessage) -> int:
         content = len(self.encoding.encode(value.content))
         role = len(self.encoding.encode(value.role))
         tool_calls = len(self.encoding.encode(value.tool_calls.get("name", "")))
         arguments = len(self.encoding.encode(value.tool_calls.get("arguments", "")))
-        return content + role + tool_calls + arguments + self.SAFE_GAP_PER_MSG
+        return content + role + tool_calls + arguments + settings.SAFE_GAP_PER_MSG
 
     def is_value_not_empty(self, value: ChatMessage) -> bool:
         if not value:

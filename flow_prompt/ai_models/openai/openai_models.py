@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from openai import AzureOpenAI, OpenAI
+from openai import OpenAI
+from flow_prompt import settings
 
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
-from flow_prompt.responses import OpenAIResponse
+from flow_prompt.ai_models.openai.responses import OpenAIResponse
 
 from .utils import raise_openai_exception
 
@@ -65,11 +66,32 @@ OPEN_AI_PRICING = {
 }
 
 
-@dataclass
+@dataclass(kw_only=True)
 class OpenAIModel(AIModel):
     model: t.Optional[str]
     support_functions: bool = False
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.OPENAI
+    family: str = None
+
+    def __str__(self) -> str:
+        return f"openai-{self.model}-{self.family}"
+
+    def __post_init__(self):
+        if self.model.startswith("davinci"):
+            self.family = FamilyModel.instruct_gpt.value
+        elif self.model.startswith("gpt-3"):
+            self.family = FamilyModel.chat.value
+        elif self.model.startswith(("gpt-4", "gpt")):
+            self.family = FamilyModel.gpt4.value
+        else:
+            logger.warning(f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4")
+            self.family = FamilyModel.gpt4.value
+        self.verify_client_has_creds()
+        logger.info(f"Initialized OpenAIModel: {self}")
+
+    def verify_client_has_creds(self):
+        if self.provider not in settings.AI_CLIENTS:
+            raise Exception(f"Provider {self.provider} not found in AI_CLIENTS")
 
     @property
     def name(self) -> str:
@@ -89,30 +111,25 @@ class OpenAIModel(AIModel):
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            "model": self.provider.engine.model,
+            "model": self.model,
         }
 
-    def call(self, *args, **kwargs) -> OpenAIResponse:
+    def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
-            return self.call_chat_completion(**kwargs)
-        raise NotImplementedError(f"family {self.family} is not implemented")
+            return self.call_chat_completion(messages, max_tokens, **kwargs)
+        raise NotImplementedError(f"Openai family {self.family} is not implemented")
 
-    def get_client(self, **kwargs):
-        return OpenAI(
-            organization=kwargs.pop("organization", None),
-            api_key=kwargs.pop("api_key", None),
-            base_url=kwargs.pop("api_base", "https://api.openai.com"),
-        )
+    def get_client(self):
+        return settings.AI_CLIENTS[self.provider]
 
     def call_chat_completion(
         self,
-        max_tokens: t.Optional[int],
         messages: t.List[t.Dict[str, str]],
-        functions: t.List[t.Dict[str, str]] = None,
-        provider_params: t.Dict[str, str] = None,
+        max_tokens: t.Optional[int],
+        functions: t.List[t.Dict[str, str]] = [],
         **kwargs,
     ) -> OpenAIResponse:
-        max_tokens = min(max_tokens, self._max_model)
+        max_tokens = min(max_tokens, self.max_tokens)
         common_args = {
             "top_p": 1,
             "temperature": 0,
@@ -124,43 +141,23 @@ class OpenAIModel(AIModel):
                 "messages": messages,
             },
             **common_args,
-            **provider_params,
+            **self.get_params(),
             **kwargs,
         }
         if functions:
             kwargs["tools"] = functions
         try:
-            client = self.get_client(**kwargs)
+            client = self.get_client()
             result = client.chat.completions.create(
                 **kwargs,
             )
+            logger.debug(f"Result: {result.choices[0]}")
             return OpenAIResponse(
                 finish_reason=result.choices[0].finish_reason,
                 message=result.choices[0].message,
-                conent=result.choices[0].message.content,
+                content=result.choices[0].message.content,
+                original_result=result
             )
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)
             raise_openai_exception(e)
-
-
-@dataclass
-class AzureAIModel(OpenAIModel):
-    realm: t.Optional[str]
-    deployment_name: t.Optional[str]
-    provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.AZURE
-
-    def name(self) -> str:
-        return f"{self.deployment_name}-{self.realm}"
-
-    def get_params(self) -> t.Dict[str, t.Any]:
-        return {
-            "model": self.deployment_name,
-        }
-
-    def get_client(self, **kwargs):
-        return AzureOpenAI(
-            api_version=kwargs.pop("api_version", "2023-07-01-preview"),
-            azure_endpoint=kwargs.pop("api_base", "https://api.openai.com"),
-            api_key=kwargs.pop("api_key", None),
-        )
