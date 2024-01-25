@@ -118,7 +118,7 @@ class FlowPrompt:
             if response.prompt_is_actual:
                 return prompt
             else:
-                return PipePrompt.from_dict(response.actual_prompt)
+                return PipePrompt.load(response.actual_prompt)
         else:
             return settings.PIPE_PROMPTS[prompt_id]
 

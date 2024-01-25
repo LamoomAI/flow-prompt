@@ -52,3 +52,6 @@ flow_prompt.API_TOKEN = None
 ### Best Security practices
 For production development we recommend to store secrets in secret storage, and do not use for that environment variables.
 
+## Development rules
+- Use f-strings instead .format(). F-strings are more concise and perform better and for our case less prone to bugs.
+- Use pre-commit hooks. They re-format code automatically and run linters. Install them with `pre-commit install`.
