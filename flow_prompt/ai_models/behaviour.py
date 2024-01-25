@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class AIModelsBehaviour:
-    # if you have mutiple AI Models, you can distribute the load across them. 
+    # if you have mutiple AI Models, you can distribute the load across them.
     # If you wish to use as a fallback attempt a model which is not in the list, you can use fallback_attempt
     attempts: list[AttemptToCall]
     fallback_attempt: AttemptToCall = None
@@ -37,7 +37,10 @@ class PromptAttempts:
             raise BehaviourIsNotDefined(
                 f"Count of retries {self.count_of_retries} exceeded {self.count}"
             )
-        if self.count == self.count_of_retries and self.ai_models_behaviour.fallback_attempt:
+        if (
+            self.count == self.count_of_retries
+            and self.ai_models_behaviour.fallback_attempt
+        ):
             self.current_attempt = self.ai_models_behaviour.fallback_attempt
             return self.current_attempt
         sum_weight = sum(

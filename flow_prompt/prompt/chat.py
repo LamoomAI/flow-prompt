@@ -26,7 +26,7 @@ class ChatCondition:
             "if_exists": self.if_exists,
             "if_not_exist": self.if_not_exist,
         }
-    
+
     @classmethod
     def load(cls, data):
         return cls(
@@ -153,7 +153,7 @@ class ChatsEntity:
             )
             return []
         return values
-    
+
     def dump(self):
         return {
             "content": self.content,
@@ -198,5 +198,3 @@ class ChatsEntity:
             ref_name=data.get("ref_name"),
             ref_value=data.get("ref_value"),
         )
-
-

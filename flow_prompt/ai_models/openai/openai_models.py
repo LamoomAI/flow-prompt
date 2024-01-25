@@ -5,8 +5,8 @@ from decimal import Decimal
 from enum import Enum
 
 from openai import OpenAI
-from flow_prompt import settings
 
+from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 
@@ -84,7 +84,9 @@ class OpenAIModel(AIModel):
         elif self.model.startswith(("gpt-4", "gpt")):
             self.family = FamilyModel.gpt4.value
         else:
-            logger.warning(f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4")
+            logger.warning(
+                f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4"
+            )
             self.family = FamilyModel.gpt4.value
         self.verify_client_has_creds()
         logger.info(f"Initialized OpenAIModel: {self}")
@@ -156,7 +158,7 @@ class OpenAIModel(AIModel):
                 finish_reason=result.choices[0].finish_reason,
                 message=result.choices[0].message,
                 content=result.choices[0].message.content,
-                original_result=result
+                original_result=result,
             )
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)

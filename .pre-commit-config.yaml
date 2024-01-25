@@ -1,0 +1,50 @@
+exclude: '^(tree-sitter-*)'
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.2.0
+  hooks:
+  - id: check-ast
+  - id: trailing-whitespace
+  - id: check-toml
+  - id: check-yaml
+  - id: check-added-large-files
+  - id: check-merge-conflict
+
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.1.0
+  hooks:
+  - id: pretty-format-yaml
+    args:
+    - --autofix
+    - --preserve-quotes
+    - --indent=2
+
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.5.0
+  hooks:
+  - id: nbstripout
+    name: Clean notebook outputs
+
+- repo: local
+  hooks:
+
+  - id: isort
+    name: Format with isort
+    entry: poetry run isort
+    language: system
+    types: [python]
+
+  - id: black
+    name: Format with Black
+    entry: poetry run black
+    language: system
+    types: [python]
+
+  # - id: flake8
+  #   name: Validate with flake8
+  #   entry: poetry run flake8 flow_prompt
+  #   language: system
+  #   pass_filenames: false
+  #   types: [python]
+  #   args: [--count]

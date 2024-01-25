@@ -1,0 +1,31 @@
+name: run-unit-tests
+
+on: push
+
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-22.04
+    container: python:3.11-slim
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        apt-get update && apt-get install -y curl build-essential
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.11
+        cache: poetry
+
+    - name: Install Python libraries
+      run: poetry install
+
+    - name: Run tests with pytest
+      run: |
+        poetry run make test

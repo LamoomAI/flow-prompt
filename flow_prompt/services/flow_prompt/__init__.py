@@ -1,13 +1,14 @@
-from dataclasses import dataclass
 import logging
-from urllib import request
-from flow_prompt import settings
 import typing as t
+from dataclasses import dataclass
+from urllib import request
 
+from flow_prompt import settings
 from flow_prompt.exceptions import NotFoundPromptException
 from flow_prompt.utils import current_timestamp_ms
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class FlowPromptServiceResponse:
@@ -76,14 +77,15 @@ class FlowPromptService:
         if cached_delay < settings.CACHE_PROMPT_FOR_EACH_SECONDS * 1000:
             return cached_data.get("prompt")
         return None
-    
-    def save_user_interaction(self, 
+
+    def save_user_interaction(
+        self,
         api_token: str,
-        context: dict[str, t.Any], 
-        prompt_data: dict[str, t.Any], 
+        context: dict[str, t.Any],
+        prompt_data: dict[str, t.Any],
         response: dict[str, t.Any],
-        metrics: dict[str, t.Any] = {}
-        ):
+        metrics: dict[str, t.Any] = {},
+    ):
         url = f"{self.url}user_interactions/"
         headers = {"Authorization": f"Token {api_token}"}
         data = {

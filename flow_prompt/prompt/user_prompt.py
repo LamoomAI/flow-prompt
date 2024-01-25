@@ -71,7 +71,10 @@ class UserPrompt(BasePrompt):
         state.left_budget = self.left_budget
         for priority in sorted(self.priorities.keys()):
             for chat_value in self.priorities[priority]:
-                r = [p in state.fully_fitted_pipitas for p in (chat_value.add_if_fitted or [])]
+                r = [
+                    p in state.fully_fitted_pipitas
+                    for p in (chat_value.add_if_fitted or [])
+                ]
                 if not all(r):
                     continue
 
@@ -85,7 +88,7 @@ class UserPrompt(BasePrompt):
                     )
 
                 values = chat_value.get_values(context)
-                logger.debug(f'Got values for {chat_value}: {values}')
+                logger.debug(f"Got values for {chat_value}: {values}")
                 if not values:
                     continue
                 if chat_value.in_one_message:
@@ -104,20 +107,14 @@ class UserPrompt(BasePrompt):
                         state.fully_fitted_pipitas.add(chat_value.label)
 
                 if not messages:
-                    logger.debug(
-                        f"messages is empty for {chat_value}"
-                    )
+                    logger.debug(f"messages is empty for {chat_value}")
                     continue
                 if not self.is_enough_budget(state, messages_budget):
-                    logger.debug(
-                        f"not enough budget for {chat_value}"
-                    )
+                    logger.debug(f"not enough budget for {chat_value}")
                     if chat_value.required:
                         raise NotEnoughBudgetException("Not enough budget")
                     continue
-                logger.debug(
-                    f"adding {len(messages)} messages for {chat_value}"
-                )
+                logger.debug(f"adding {len(messages)} messages for {chat_value}")
                 state.left_budget -= messages_budget
                 prompt_budget += messages_budget
                 if chat_value.presentation:

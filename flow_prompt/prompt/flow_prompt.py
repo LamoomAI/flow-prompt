@@ -3,7 +3,7 @@ import typing as t
 from dataclasses import dataclass
 from decimal import Decimal
 
-from openai import OpenAI, AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 
 from flow_prompt import secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
@@ -65,16 +65,22 @@ class FlowPrompt:
 
         while prompt_attempts.initialize_attempt():
             current_attempt = prompt_attempts.current_attempt
-            logger.info(f"Calling {prompt_id}. Attempt {prompt_attempts.current_attempt}")
+            logger.info(
+                f"Calling {prompt_id}. Attempt {prompt_attempts.current_attempt}"
+            )
             user_prompt = pipe_prompt.create_prompt(current_attempt)
             calling_messages = user_prompt.resolve(context)
             try:
                 result = current_attempt.ai_model.call(
-                    calling_messages.get_messages(), calling_messages.max_sample_budget, **params
+                    calling_messages.get_messages(),
+                    calling_messages.max_sample_budget,
+                    **params,
                 )
                 price_of_call = self.get_price(
                     current_attempt,
-                    self.calculate_budget_for_text(user_prompt, result.get_message_str()),
+                    self.calculate_budget_for_text(
+                        user_prompt, result.get_message_str()
+                    ),
                     calling_messages.prompt_budget,
                 )
                 self.save_user_interaction(
@@ -115,8 +121,14 @@ class FlowPrompt:
                 return PipePrompt.from_dict(response.actual_prompt)
         else:
             return settings.PIPE_PROMPTS[prompt_id]
-        
-    def save_user_interaction(self, prompt_data: dict, context: dict[str, t.Any], result: AIResponse, metrics: dict[str, t.Any] = {}) -> None:
+
+    def save_user_interaction(
+        self,
+        prompt_data: dict,
+        context: dict[str, t.Any],
+        result: AIResponse,
+        metrics: dict[str, t.Any] = {},
+    ) -> None:
         """
         Save user interaction to flow-prompt
         """
@@ -125,7 +137,7 @@ class FlowPrompt:
                 self.api_token, prompt_data, context, result, metrics
             )
 
-    def calculate_budget_for_text(self,  user_prompt: UserPrompt, text: str) -> int:
+    def calculate_budget_for_text(self, user_prompt: UserPrompt, text: str) -> int:
         if not text:
             return 0
         return len(user_prompt.encoding.encode(text))
@@ -133,13 +145,11 @@ class FlowPrompt:
     def _decimal(self, value) -> Decimal:
         return Decimal(value).quantize(Decimal(".00001"))
 
-    def get_price(self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int) -> Decimal:
+    def get_price(
+        self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int
+    ) -> Decimal:
         return self._decimal(
-            prompt_budget
-            * attempt.ai_model.price_per_prompt_1k_tokens
-            / 1000
-        ) +   self._decimal(
-            sample_budget
-            * attempt.ai_model.price_per_sample_1k_tokens
-            / 1000
+            prompt_budget * attempt.ai_model.price_per_prompt_1k_tokens / 1000
+        ) + self._decimal(
+            sample_budget * attempt.ai_model.price_per_sample_1k_tokens / 1000
         )

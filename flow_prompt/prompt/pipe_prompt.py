@@ -1,8 +1,8 @@
 import logging
 from copy import deepcopy
 from dataclasses import dataclass
-from flow_prompt import settings
 
+from flow_prompt import settings
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.prompt.base_prompt import BasePrompt
 from flow_prompt.prompt.chat import ChatsEntity
@@ -10,7 +10,6 @@ from flow_prompt.prompt.user_prompt import UserPrompt
 from flow_prompt.settings import PIPE_PROMPTS
 
 logger = logging.getLogger(__name__)
-
 
 
 @dataclass(kw_only=True)
@@ -28,10 +27,10 @@ class PipePrompt(BasePrompt):
 
     def __post_init__(self):
         PIPE_PROMPTS[self.id] = self
-    
+
     def get_max_tokens(self, ai_attempt: AttemptToCall) -> int:
         if self.max_tokens:
-            return min(self.max_tokens, ai_attempt.model_max_tokens()) 
+            return min(self.max_tokens, ai_attempt.model_max_tokens())
         return ai_attempt.model_max_tokens()
 
     def create_prompt(self, ai_attempt: AttemptToCall) -> UserPrompt:
@@ -60,12 +59,14 @@ class PipePrompt(BasePrompt):
             },
             "pipe": self.pipe,
         }
-    
+
     @classmethod
     def load(cls, data):
         priorities = {}
         for priority, chat_values in data["priorities"].items():
-            priorities[int(priority)] = [ChatsEntity.load(chat_value) for chat_value in chat_values]
+            priorities[int(priority)] = [
+                ChatsEntity.load(chat_value) for chat_value in chat_values
+            ]
         return cls(
             id=data["id"],
             max_tokens=data["max_tokens"],
