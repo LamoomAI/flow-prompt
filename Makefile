@@ -21,6 +21,9 @@ isort-check:
 autopep8:
 	for f in `find flow_prompt -name "*.py"`; do autopep8 --in-place --select=E501 $f; done
 
+lint:
+	poetry run isort --settings-path pyproject.toml --check-only .
+
 test:
 	poetry run pytest -vv tests \
 		--cov=${PROJECT_FOLDER} \
