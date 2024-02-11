@@ -85,7 +85,7 @@ class ChatsEntity:
     add_in_reverse_order: bool = False
     in_one_message: bool = False
     continue_if_doesnt_fit: bool = False
-    add_if_fitted: t.List[str] = None
+    add_if_fitted_labels: t.List[str] = None
     label: t.Optional[str] = None
     presentation: t.Optional[str] = None
     last_words: t.Optional[str] = None
@@ -168,7 +168,7 @@ class ChatsEntity:
             "add_in_reverse_order": self.add_in_reverse_order,
             "in_one_message": self.in_one_message,
             "continue_if_doesnt_fit": self.continue_if_doesnt_fit,
-            "add_if_fitted": self.add_if_fitted,
+            "add_if_fitted_labels": self.add_if_fitted_labels,
             "label": self.label,
             "presentation": self.presentation,
             "last_words": self.last_words,
@@ -191,7 +191,7 @@ class ChatsEntity:
             add_in_reverse_order=data.get("add_in_reverse_order"),
             in_one_message=data.get("in_one_message"),
             continue_if_doesnt_fit=data.get("continue_if_doesnt_fit"),
-            add_if_fitted=data.get("add_if_fitted"),
+            add_if_fitted_labels=data.get("add_if_fitted_labels"),
             label=data.get("label"),
             presentation=data.get("presentation"),
             last_words=data.get("last_words"),

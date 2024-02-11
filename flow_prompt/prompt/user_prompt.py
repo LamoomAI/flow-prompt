@@ -57,7 +57,7 @@ class UserPrompt(BasePrompt):
     model_max_tokens: int
     tiktoken_encoding: str
     min_sample_tokens: int
-    max_sample_tokens: int = None
+    reserved_tokens_budget_for_sampling: int = None
     safe_gap_tokens: int = settings.SAFE_GAP_TOKENS
 
     def __post_init__(self):
@@ -73,7 +73,7 @@ class UserPrompt(BasePrompt):
             for chat_value in self.priorities[priority]:
                 r = [
                     p in state.fully_fitted_pipitas
-                    for p in (chat_value.add_if_fitted or [])
+                    for p in (chat_value.add_if_fitted_labels or [])
                 ]
                 if not all(r):
                     continue
@@ -133,8 +133,8 @@ class UserPrompt(BasePrompt):
             item for sublist in final_pipe_with_order for item in sublist if item
         ]
         max_sample_budget = left_budget = state.left_budget + self.min_sample_tokens
-        if self.max_sample_tokens:
-            max_sample_budget = min(self.max_sample_tokens, left_budget)
+        if self.reserved_tokens_budget_for_sampling:
+            max_sample_budget = min(self.reserved_tokens_budget_for_sampling, left_budget)
         return CallingMessages(
             references=state.references,
             messages=flat_list,

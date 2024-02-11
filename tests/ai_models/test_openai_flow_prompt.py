@@ -27,7 +27,7 @@ def test_flow_prompt(mock_openai, flow_prompt, chat_completion_openai: ChatCompl
     AI_CLIENTS[AI_MODELS_PROVIDER.OPENAI] = mock_openai_instance
 
     response = flow_prompt.call(
-        hello_world_prompt.id, context, openai_gpt_4_behaviour, {}
+        hello_world_prompt.id, context, openai_gpt_4_behaviour
     )
 
     assert  mock_create.call_count == 1

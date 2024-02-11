@@ -23,7 +23,7 @@ class PipePrompt(BasePrompt):
     id: str
     max_tokens: int = None
     min_sample_tokens: int = settings.DEFAULT_SAMPLE_MIN_BUDGET
-    max_sample_tokens: int = None
+    reserved_tokens_budget_for_sampling: int = None
 
     def __post_init__(self):
         PIPE_PROMPTS[self.id] = self
@@ -44,7 +44,7 @@ class PipePrompt(BasePrompt):
             tiktoken_encoding=ai_attempt.tiktoken_encoding(),
             model_max_tokens=self.get_max_tokens(ai_attempt),
             min_sample_tokens=self.min_sample_tokens,
-            max_sample_tokens=self.max_sample_tokens,
+            reserved_tokens_budget_for_sampling=self.reserved_tokens_budget_for_sampling,
         )
 
     def dump(self) -> dict:
@@ -52,7 +52,7 @@ class PipePrompt(BasePrompt):
             "id": self.id,
             "max_tokens": self.max_tokens,
             "min_sample_tokens": self.min_sample_tokens,
-            "max_sample_tokens": self.max_sample_tokens,
+            "reserved_tokens_budget_for_sampling": self.reserved_tokens_budget_for_sampling,
             "priorities": {
                 priority: [chats_value.dump() for chats_value in chats_values]
                 for priority, chats_values in self.priorities.items()
@@ -71,7 +71,7 @@ class PipePrompt(BasePrompt):
             id=data["id"],
             max_tokens=data["max_tokens"],
             min_sample_tokens=data.get("min_sample_tokens"),
-            max_sample_tokens=data.get("max_sample_tokens"),
+            reserved_tokens_budget_for_sampling=data.get("reserved_tokens_budget_for_sampling"),
             priorities=priorities,
             pipe=data["pipe"],
         )

@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from openai import OpenAI
-
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
@@ -59,8 +57,8 @@ OPEN_AI_PRICING = {
     },
     FamilyModel.instruct_gpt.value: {
         M_DAVINCI: {
-            "price_per_prompt_1k_tokens": Decimal(0.02),
-            "price_per_sample_1k_tokens": Decimal(0.02),
+            "price_per_prompt_1k_tokens": Decimal(0.0015),
+            "price_per_sample_1k_tokens": Decimal(0.002),
         },
     },
 }

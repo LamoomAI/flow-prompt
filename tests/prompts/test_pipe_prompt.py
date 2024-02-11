@@ -78,9 +78,9 @@ def test_pipe_prompt_show_pipe():
     assert pipe_dump['id'] == 'test'
     assert pipe_dump['max_tokens'] is None
     assert pipe_dump['min_sample_tokens'] == 3000
-    assert pipe_dump['max_sample_tokens'] is None
+    assert pipe_dump['reserved_tokens_budget_for_sampling'] is None
     assert len(pipe_dump['pipe']) == 1
-    assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'name': None, 'tool_calls': None, 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'condition': {'if_exists': None, 'if_not_exist': None}, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False, 'add_if_fitted': None, 'label': None, 'presentation': None, 'last_words': None, 'ref_name': None, 'ref_value': None}]}
+    assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'name': None, 'tool_calls': None, 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'condition': {'if_exists': None, 'if_not_exist': None}, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False, 'add_if_fitted_labels': None, 'label': None, 'presentation': None, 'last_words': None, 'ref_name': None, 'ref_value': None}]}
 
 
 def test_pipe_prompt_left_budget(azure_ai_attempt:  AttemptToCall):
@@ -88,7 +88,7 @@ def test_pipe_prompt_left_budget(azure_ai_attempt:  AttemptToCall):
     pipe.add("Hello, how can I help you today?")
     user_prompt = pipe.create_prompt(azure_ai_attempt)
     user_prompt.model_max_tokens = 2030
-    user_prompt.max_sample_tokens = 2030
+    user_prompt.reserved_tokens_budget_for_sampling = 2030
     initialized_pipe = user_prompt.resolve({})
     assert (
         initialized_pipe.left_budget

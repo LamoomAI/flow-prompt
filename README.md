@@ -24,7 +24,6 @@ flow_prompt.OPENAI_API_KEY = None
 flow_prompt.OPENAI_ORG = None
 ```
 
-
 ### Azure Keys
 Because Azure has several realms, and on each independent rate limits (not mentiniong credits), people do deploy on several realms the model. To add Azure keys please use:
 - environment variables:
@@ -47,6 +46,76 @@ To receive dynamic changes of the prompt, to record LLM interactions, metrics an
 import flow_prompt
 flow_prompt.API_TOKEN = None
 ```
+## Usage examples:
+
+1. You can easily create prompt on http://www.flow-prompt.com or in the code:
+```
+# id of the prompt
+prompt = PipePrompt('merge_code') 
+
+prompt.add("It's a system message, Hello {name}", role="system")
+
+# Be sure that indexed context is prioritized first, 
+# add it until it fits. Start with `The closest indexed context`..
+prompt.add('{indexed_context}',
+    priority=2, 
+    is_multiple=True, while_fits=True, in_one_message=True, continue_if_doesnt_fit=True,
+    presentation="The closest indexed context to user request:"
+    label='indexed_context'
+)
+# add if in another msg was fitted fully 
+prompt.add('{messages}', priority=3, 
+    while_fits=True, is_multiple=True, add_in_reverse_order=True,
+    add_if_fitted_labels=['indexed_context'],
+    label='last_messages'
+)
+# add assistant response in context, if it was
+prompt.add('{assistant_response_in_progress}',
+    role="assistant",
+    presentation='Continue the response right after last symbol:'
+)
+```
+
+2. Use OPENAI_BEHAVIOR or add your own Behaviour, you can set max count of attempts, ir different AI Models, if the first attempt will fail, the second will be called, based on the weights.
+
+```
+from flow_prompt import OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
+flow_behaviour = OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
+```
+or:
+```
+from flow_prompt import behaviour
+flow_behaviour = behaviour.AIModelsBehaviour(
+    attempts=[
+        AttemptToCall(
+            ai_model=AzureAIModel(
+                realm='us-east-1',
+                deployment_name="gpt-4-1106-preview",
+                max_tokens=C_128K,
+                support_functions=True,
+            ),
+            weight=100,
+        ),
+        AttemptToCall(
+            ai_model=OpenAIModel(
+                model="gpt-4-1106-preview",
+                max_tokens=C_128K,
+                support_functions=True,
+            ),
+            weight=100,
+        ),
+    ]
+)
+```
+
+3. Call using flow_prompt initialized above:
+```
+flow_prompt.call(
+    prompt.id, context, flow_behaviour
+)
+```
+
+
 
 ### Best Security practices
 !For production development we recommend to store secrets in secret storage, and do not use for that environment variables.
@@ -54,3 +123,33 @@ flow_prompt.API_TOKEN = None
 ## Development rules
 - Use f-strings instead .format(). F-strings are more concise and perform better and for our case less prone to bugs.
 - Use pre-commit hooks. They re-format code automatically and run linters. Install them with `pre-commit install`.
+ 
+
+1. **Install Poetry**
+
+Poetry is a tool for dependency management and packaging in Python. Install it using the following command:
+For details visit [python-poetry.org](https://python-poetry.org/docs/)
+```shell
+curl -sSL https://install.python-poetry.org | python3 -
+```
+3. Install pyenv
+Pyenv is a tool for managing multiple Python versions. Install it using the following command:
+```shell
+curl https://pyenv.run | bash
+```
+3. **Set Python Version**
+Choose the desired Python version (should be higher than 3.11). For example, to use Python 3.11, run:
+```shell
+pyenv install 3.11.5
+pyenv global 3.11.5
+```
+4. Install all dependencies and activate poetry
+```shell
+poetry env use 3.11.5
+poetry shell
+```
+If you are on Windows, and the installation failed, this is probably due to uWSGI dependency.
+Try to install dependencies w/o it.
+```shell
+poetry install
+```
