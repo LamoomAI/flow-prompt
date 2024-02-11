@@ -70,6 +70,8 @@ class OpenAIModel(AIModel):
     support_functions: bool = False
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.OPENAI
     family: str = None
+    should_verify_client_has_creds: bool = True
+
 
     def __str__(self) -> str:
         return f"openai-{self.model}-{self.family}"
@@ -86,7 +88,8 @@ class OpenAIModel(AIModel):
                 f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4"
             )
             self.family = FamilyModel.gpt4.value
-        self.verify_client_has_creds()
+        if self.should_verify_client_has_creds:
+            self.verify_client_has_creds()
         logger.info(f"Initialized OpenAIModel: {self}")
 
     def verify_client_has_creds(self):
