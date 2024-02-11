@@ -110,12 +110,26 @@ flow_behaviour = behaviour.AIModelsBehaviour(
 
 3. Call using flow_prompt initialized above:
 ```
-flow_prompt.call(
+response = flow_prompt.call(
     prompt.id, context, flow_behaviour
 )
 ```
 
+4. Use the response:
+Attrs will be set for the response:
+```
+response.finish_reason
+response.message
+response.content
+response.original_result
+```
 
+5. Improve the setup, and easily manage your prompt online based on the data. Your code when you will create the setup will look the next.
+```
+response = flow_prompt.call(
+    'test_data', context, gpt4_behaviour
+)
+```
 
 ### Best Security practices
 !For production development we recommend to store secrets in secret storage, and do not use for that environment variables.
