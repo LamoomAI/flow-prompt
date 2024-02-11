@@ -71,7 +71,9 @@ class PipePrompt(BasePrompt):
             id=data["id"],
             max_tokens=data["max_tokens"],
             min_sample_tokens=data.get("min_sample_tokens"),
-            reserved_tokens_budget_for_sampling=data.get("reserved_tokens_budget_for_sampling"),
+            reserved_tokens_budget_for_sampling=data.get(
+                "reserved_tokens_budget_for_sampling"
+            ),
             priorities=priorities,
             pipe=data["pipe"],
         )

@@ -134,7 +134,9 @@ class UserPrompt(BasePrompt):
         ]
         max_sample_budget = left_budget = state.left_budget + self.min_sample_tokens
         if self.reserved_tokens_budget_for_sampling:
-            max_sample_budget = min(self.reserved_tokens_budget_for_sampling, left_budget)
+            max_sample_budget = min(
+                self.reserved_tokens_budget_for_sampling, left_budget
+            )
         return CallingMessages(
             references=state.references,
             messages=flat_list,
