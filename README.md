@@ -11,11 +11,16 @@ With service usage you can get:
 - Reviewing real-time interactions in the Prod, with request/response
 - Testing new prompt online based on your historical data
 
+## To install:
+```
+pip install flow-prompt
+```
+
 ## Authentification
 
 ### Openai Keys
 To add OPENAI_KEYs, you can do that by any of that instructions:
-- add `OPENAI_API_KEY`` as environment variable
+- add `OPENAI_API_KEY` as environment variable
 - ```FlowPrompt(openai_api_key={key}, openai_org={org})```
 - using as global variable:
 ```
@@ -30,7 +35,7 @@ Because Azure has several realms, and on each independent rate limits (not menti
     - `AZURE_OPENAI_API_KEY`
     - `AZURE_OPENAI_ENDPOINT`
 - using FlowPrompt
-```FlowPrompt(azure_openai_keys={"name_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}})```
+```FlowPrompt(azure_openai_keys={"name_of_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}})```
 - using global variable:
 ```
 import flow_prompt
@@ -55,28 +60,28 @@ prompt = PipePrompt('merge_code')
 
 prompt.add("It's a system message, Hello {name}", role="system")
 
-# Be sure that indexed context is prioritized first, 
-# add it until it fits. Start with `The closest indexed context`..
+# Be sure that indexed context is prioritized first, add it until it fits.
+# Start with `The closest indexed context`, if there are no indexed context do not add the "closest indexed context"
 prompt.add('{indexed_context}',
     priority=2, 
     is_multiple=True, while_fits=True, in_one_message=True, continue_if_doesnt_fit=True,
-    presentation="The closest indexed context to user request:"
+    presentation="The closest indexed context to the user request:"
     label='indexed_context'
 )
-# add if in another msg was fitted fully 
+# add if in another msg was fitted fully by priority
 prompt.add('{messages}', priority=3, 
     while_fits=True, is_multiple=True, add_in_reverse_order=True,
     add_if_fitted_labels=['indexed_context'],
     label='last_messages'
 )
-# add assistant response in context, if it was
+# add assistant response in context if it's in the context
 prompt.add('{assistant_response_in_progress}',
     role="assistant",
     presentation='Continue the response right after last symbol:'
 )
 ```
 
-2. Use OPENAI_BEHAVIOR or add your own Behaviour, you can set max count of attempts, ir different AI Models, if the first attempt will fail, the second will be called, based on the weights.
+2. Use OPENAI_BEHAVIOR or add your own Behaviour, you can set max count of attempts, if you have different AI Models, if the first attempt will fail, the second will be called, based on the weights.
 
 ```
 from flow_prompt import OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
@@ -108,9 +113,10 @@ flow_behaviour = behaviour.AIModelsBehaviour(
 )
 ```
 
-3. Call using flow_prompt initialized above:
+3. Finally, call AI Model, with flow_prompt:
 ```
-response = flow_prompt.call(
+flow = FlowPrompt(azure_openai_keys={"name_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}}, openai_api_key={key}, openai_org={org})
+response = flow.call(
     prompt.id, context, flow_behaviour
 )
 ```
@@ -124,17 +130,26 @@ response.content
 response.original_result
 ```
 
-5. Improve the setup, and easily manage your prompt online based on the data. Your code when you will create the setup will look the next.
+5. We know, it sounds like overhead. And we agree, but to have a mechanism of running production code you need at leat make a proper setup. And after you can manage your prompt easily:
 ```
 response = flow_prompt.call(
-    'test_data', context, gpt4_behaviour
+    'production_prompt', context, gpt4_azure_models_with_openai_fallback
 )
+
+response = flow_prompt.call(
+    'fine_tuned_production_prompt', context, gpt3_behaviour
+)
+
 ```
 
 ### Best Security practices
 !For production development we recommend to store secrets in secret storage, and do not use for that environment variables.
 
-## Development rules
+
+
+## For contributing:
+
+### Rules
 - Use f-strings instead .format(). F-strings are more concise and perform better and for our case less prone to bugs.
 - Use pre-commit hooks. They re-format code automatically and run linters. Install them with `pre-commit install`.
  
