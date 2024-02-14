@@ -3,7 +3,7 @@ import typing as t
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from flow_prompt.prompt.chat import ChatCondition, ChatsEntity
+from flow_prompt.prompt.chat import ChatsEntity
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ class BasePrompt:
     priorities: t.Dict[int, t.List[ChatsEntity]] = field(
         default_factory=lambda: defaultdict(list)
     )
+    chats: t.List[ChatsEntity] = field(default_factory=list)
     pipe: t.List[str] = field(default_factory=list)
     functions: t.List[dict] = None
 
@@ -36,7 +37,6 @@ class BasePrompt:
         presentation: t.Optional[str] = None,
         last_words: t.Optional[str] = None,
     ):
-        condition = ChatCondition(if_exists, if_not_exist)
         chat_value = ChatsEntity(
             role=role,
             content=(content or ""),
@@ -44,7 +44,6 @@ class BasePrompt:
             tool_calls=tool_calls,
             priority=priority,
             required=required,
-            condition=condition,
             is_multiple=is_multiple,
             while_fits=while_fits,
             add_in_reverse_order=add_in_reverse_order,
@@ -55,6 +54,7 @@ class BasePrompt:
             presentation=presentation,
             last_words=last_words,
         )
+        self.chats.append(chat_value)
         self.priorities[priority].append(chat_value)
         self.pipe.append(chat_value._uuid)
 

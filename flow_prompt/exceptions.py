@@ -20,3 +20,7 @@ class NotEnoughBudgetException(FlowPromptException):
 
 class NotFoundPromptException(FlowPromptException):
     pass
+
+
+class ProviderNotFoundException(FlowPromptException):
+    pass

@@ -1,11 +1,12 @@
+import json
 import logging
 import typing as t
 from dataclasses import dataclass
-from urllib import request
+import requests
 
 from flow_prompt import settings
 from flow_prompt.exceptions import NotFoundPromptException
-from flow_prompt.utils import current_timestamp_ms
+from flow_prompt.utils import DecimalEncoder, current_timestamp_ms
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class FlowPromptServiceResponse:
 
 
 class FlowPromptService:
-    url: str = "https://flow-prompt.com/api/v1/"
+    url: str = "https://api.flow-prompt.com/"
     cached_prompts = {}
 
     def get_actual_prompt(
@@ -39,25 +40,43 @@ class FlowPromptService:
         add a new record in storage, and adding that it's the latest published prompt; -> return 200
         update redis with latest record;
         """
-        cached_prompt = self.get_cached_prompt(prompt_id)
+        cached_prompt = None
+        cached_prompt_taken_globally = False
+        cached_data = self.get_cached_prompt(prompt_id)
+        if cached_data:
+            cached_prompt = cached_data.get("prompt")
+            cached_prompt_taken_globally = cached_data.get(
+                "prompt_taken_globally")
         if cached_prompt:
             return FlowPromptServiceResponse(
                 prompt_id=prompt_id,
                 actual_prompt=cached_prompt,
                 prompt_is_actual=True,
             )
-        url = f"{self.url}prompts/{prompt_id}/"
-        if version:
-            url += f"?version={version}"
-        headers = {"Authorization": f"Token {api_token}"}
-        response = request.post(url, headers=headers, data={"prompt": prompt_data})
+
+        url = f"{self.url}lib/prompts"
+        headers = {
+            "Authorization": f"Token {api_token}",
+        }
+        data = {
+            "prompt": prompt_data,
+            "prompt_id": prompt_id,
+            "version": version,
+            "prompt_taken_globally": cached_prompt_taken_globally,
+        }
+        print(json.dumps(data, cls=DecimalEncoder))
+
+        response = requests.post(url, headers=headers, data=data)
         if response.status_code == 200:
             response_data = response.json()
             prompt_data = response_data.get("prompt", prompt_data)
+            prompt_taken_globally = response_data.get("prompt_taken_globally")
+
             # update cache
             self.cached_prompts[prompt_id] = {
                 "prompt": response,
                 "timestamp": current_timestamp_ms(),
+                "prompt_taken_globally": prompt_taken_globally,
             }
             # returns 200 and the latest published prompt, if the local prompt is the latest, doesn't return the prompt
             return FlowPromptServiceResponse(
@@ -67,7 +86,7 @@ class FlowPromptService:
                 prompt_is_actual=response_data["prompt_is_actual"],
             )
         else:
-            raise NotFoundPromptException(response.json()["detail"])
+            raise NotFoundPromptException(response.json())
 
     def get_cached_prompt(self, prompt_id: str) -> dict:
         cached_data = self.cached_prompts.get(prompt_id)
@@ -75,27 +94,30 @@ class FlowPromptService:
             return None
         cached_delay = current_timestamp_ms() - cached_data.get("timestamp")
         if cached_delay < settings.CACHE_PROMPT_FOR_EACH_SECONDS * 1000:
-            return cached_data.get("prompt")
+            return cached_data
         return None
 
+    @classmethod
     def save_user_interaction(
-        self,
+        cls,
         api_token: str,
-        context: dict[str, t.Any],
         prompt_data: dict[str, t.Any],
+        context: dict[str, t.Any],
         response: dict[str, t.Any],
         metrics: dict[str, t.Any] = {},
     ):
-        url = f"{self.url}user_interactions/"
+        url = f"{cls.url}lib/ai_chronicles"
         headers = {"Authorization": f"Token {api_token}"}
         data = {
             "context": context,
-            "prompt_data": prompt_data,
-            "response": response,
+            "prompt": prompt_data,
+            "response": response.to_dict(),
             "metrics": metrics,
         }
-        response = request.post(url, headers=headers, data=data)
+        json_data = json.dumps(data, cls=DecimalEncoder)
+
+        response = requests.post(url, headers=headers, data=json_data)
         if response.status_code == 200:
             return response.json()
         else:
-            raise logger.error(response.json()["detail"])
+            logger.error(response)

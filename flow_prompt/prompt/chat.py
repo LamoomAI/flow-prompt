@@ -1,4 +1,3 @@
-import json
 import logging
 import typing as t
 import uuid
@@ -100,7 +99,8 @@ class ChatsEntity:
         content = self.content
         if self.is_multiple:
             # should be just one value like {messages} in prompt
-            prompt_value = content.strip().replace("{", "").replace("}", "").strip()
+            prompt_value = content.strip().replace(
+                "{", "").replace("}", "").strip()
             values = context.get(prompt_value, [])
             if not values:
                 return []
@@ -112,7 +112,8 @@ class ChatsEntity:
                 # verify that values are json list of ChatMessage
                 try:
                     result = [
-                        ChatMessage(**({"content": c} if isinstance(c, str) else c))
+                        ChatMessage(
+                            **({"content": c} if isinstance(c, str) else c))
                         for c in values
                     ]
                 except TypeError as e:
@@ -122,6 +123,8 @@ class ChatsEntity:
             return result
 
         content = resolve(content, context)
+        if not content:
+            return []
         return [
             ChatMessage(
                 name=self.name,
@@ -136,11 +139,11 @@ class ChatsEntity:
     def validate(self, values: t.List[ChatMessage], context: t.Dict[str, str]):
         if self.condition.if_exists and not context.get(self.condition.if_exists):
             raise ValueIsNotResolvedException(
-                f"If exists condition is not met for {self.prompt}"
+                f"If exists condition is not met for {self.content}"
             )
         if self.condition.if_not_exist and context.get(self.condition.if_not_exist):
             raise ValueIsNotResolvedException(
-                f"If not exists condition is not met for {self.prompt}"
+                f"If not exists condition is not met for {self.content}"
             )
 
     def get_values(self, context: t.Dict[str, str]) -> t.List[ChatMessage]:
@@ -149,13 +152,13 @@ class ChatsEntity:
             self.validate(values, context)
         except Exception as e:
             logger.error(
-                f"Error resolving prompt {self.prompt}, error: {e}", exc_info=True
+                f"Error resolving prompt {self.content}, error: {e}", exc_info=True
             )
             return []
         return values
 
     def dump(self):
-        return {
+        data = {
             "content": self.content,
             "role": self.role,
             "name": self.name,
@@ -164,7 +167,6 @@ class ChatsEntity:
             "required": self.required,
             "is_multiple": self.is_multiple,
             "while_fits": self.while_fits,
-            "condition": self.condition.dump(),
             "add_in_reverse_order": self.add_in_reverse_order,
             "in_one_message": self.in_one_message,
             "continue_if_doesnt_fit": self.continue_if_doesnt_fit,
@@ -175,6 +177,10 @@ class ChatsEntity:
             "ref_name": self.ref_name,
             "ref_value": self.ref_value,
         }
+        for k, v in list(data.items()):
+            if v is None:
+                del data[k]
+        return data
 
     @classmethod
     def load(cls, data):

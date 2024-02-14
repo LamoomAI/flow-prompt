@@ -7,6 +7,7 @@ from openai import AzureOpenAI
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.openai.openai_models import FamilyModel, OpenAIModel
+from flow_prompt.exceptions import ProviderNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class AzureAIModel(OpenAIModel):
 
     def verify_client_has_creds(self):
         if self.realm not in settings.AI_CLIENTS[self.provider]:
-            raise Exception(f"Realm {self.realm} not found in AI_CLIENTS")
+            raise ProviderNotFoundException(f"Realm {self.realm} not found in AI_CLIENTS")
 
     @property
     def name(self) -> str:

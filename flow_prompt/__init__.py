@@ -1,5 +1,6 @@
 from flow_prompt.prompt.flow_prompt import FlowPrompt
 from flow_prompt.ai_models import behaviour
+from flow_prompt.prompt.pipe_prompt import PipePrompt
 from flow_prompt.secrets import AZURE_KEYS, OPENAI_API_KEY, OPENAI_ORG
 from flow_prompt.ai_models.openai.behaviours import (
     OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR,
@@ -10,3 +11,13 @@ from flow_prompt.ai_models.openai.behaviours import (
     OPENAI_GPT3_5_TURBO_0125_BEHAVIOUR,
     OPENAI_GPT3_5_TURBO_INSTRUCT_BEHAVIOUR,
 )
+from flow_prompt.ai_models.attempt_to_call import AttemptToCall
+from flow_prompt.ai_models.openai.openai_models import (
+    C_128K,
+    C_4K,
+    C_16K,
+    C_32K,
+    OpenAIModel,
+)
+from flow_prompt.ai_models.openai.azure_models import AzureAIModel
+from flow_prompt.settings import *

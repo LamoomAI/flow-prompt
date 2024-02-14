@@ -10,6 +10,7 @@ from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
 from flow_prompt.exceptions import RetryableCustomException
+from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
 from flow_prompt.prompt.user_prompt import UserPrompt
 from flow_prompt.responses import AIResponse
@@ -21,12 +22,21 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class FlowPrompt:
-    api_token: str = secrets.API_TOKEN
-    openai_api_key: str = secrets.OPENAI_API_KEY
-    openai_org: str = secrets.OPENAI_ORG
-    azure_keys: t.Dict[str, str] = secrets.AZURE_KEYS
+    api_token: str = None
+    openai_api_key: str = None
+    openai_org: str = None
+    azure_keys: t.Dict[str, str] = None
 
     def __post_init__(self):
+        if not self.azure_keys and secrets.AZURE_KEYS:
+            self.azure_keys = secrets.AZURE_KEYS
+        if not self.api_token:
+            self.api_token = secrets.API_TOKEN
+        if not self.openai_api_key:
+            self.openai_api_key = secrets.OPENAI_API_KEY
+        if not self.openai_org:
+            self.openai_org = secrets.OPENAI_ORG
+        self.service = FlowPromptService()
         if self.openai_api_key:
             openai_client = OpenAI(
                 organization=self.openai_org,
@@ -38,13 +48,19 @@ class FlowPrompt:
             settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE] = {}
             for realm, key_data in self.azure_keys.items():
                 if realm in settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE]:
-                    raise Exception(f"Realm {realm} already exists")
+                    logger.warning(
+                        f"Realm {realm} already initialized. Rewriting it with new data"
+                    )
                 settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE][realm] = AzureOpenAI(
-                    api_version=key_data.get("api_version", "2023-07-01-preview"),
+                    api_version=key_data.get(
+                        "api_version", "2023-07-01-preview"),
                     azure_endpoint=key_data["url"],
                     api_key=key_data["key"],
                 )
-                logger.info(f"Initialized Azure client for {realm} {key_data['url']}")
+                logger.info(
+                    f"Initialized Azure client for {realm} {key_data['url']}"
+                )
+        self.worker = SaveWorker()
 
     def call(
         self,
@@ -61,7 +77,8 @@ class FlowPrompt:
         start_time = current_timestamp_ms()
         total_price = Decimal(0)
         pipe_prompt = self.get_pipe_prompt(prompt_id, version)
-        prompt_attempts = PromptAttempts(behaviour, count_of_retries=count_of_retries)
+        prompt_attempts = PromptAttempts(
+            behaviour, count_of_retries=count_of_retries)
 
         while prompt_attempts.initialize_attempt():
             current_attempt = prompt_attempts.current_attempt
@@ -83,16 +100,18 @@ class FlowPrompt:
                     ),
                     calling_messages.prompt_budget,
                 )
-                self.save_user_interaction(
-                    pipe_prompt.dump(),
-                    context,
-                    result,
-                    {
-                        "attempt_number": current_attempt.attempt_number,
-                        "price": price_of_call,
-                        "latency": current_timestamp_ms() - start_time,
-                    },
-                )
+                if settings.USE_API_SERVICE and self.api_token:
+                    self.worker.add_task(
+                        self.api_token,
+                        pipe_prompt.service_dump(),
+                        context,
+                        result,
+                        {
+                            "attempt_number": current_attempt.attempt_number,
+                            "price": price_of_call,
+                            "latency": current_timestamp_ms() - start_time,
+                        },
+                    )
                 return result
             except RetryableCustomException as e:
                 logger.warning(f"Retryable error: {e}")
@@ -107,35 +126,27 @@ class FlowPrompt:
         add a new record in storage, and adding that it's the latest published prompt; -> return 200
         update redis with latest record;
         """
-        if settings.USE_API_SERVICE is not None:
+        if settings.USE_API_SERVICE and self.api_token:
             prompt_data = None
             prompt = settings.PIPE_PROMPTS.get(prompt_id)
-            if prompt is None:
-                prompt_data = prompt.dump()
-            response = FlowPromptService.get_actual_prompt(
-                self.api_token, prompt_id, prompt_data, version
-            )
+            if prompt:
+                prompt_data = prompt.service_dump()
+            try:
+                response = self.service.get_actual_prompt(
+                    self.api_token, prompt_id, prompt_data, version
+                )
+            except Exception as e:
+                logger.error(f"Error while getting prompt {prompt_id}: {e}")
+                if prompt:
+                    return prompt
+                else:
+                    raise e
             if response.prompt_is_actual:
                 return prompt
             else:
                 return PipePrompt.load(response.actual_prompt)
         else:
             return settings.PIPE_PROMPTS[prompt_id]
-
-    def save_user_interaction(
-        self,
-        prompt_data: dict,
-        context: dict[str, t.Any],
-        result: AIResponse,
-        metrics: dict[str, t.Any] = {},
-    ) -> None:
-        """
-        Save user interaction to flow-prompt
-        """
-        if settings.USE_API_SERVICE is not None:
-            FlowPromptService.save_user_interaction(
-                self.api_token, prompt_data, context, result, metrics
-            )
 
     def calculate_budget_for_text(self, user_prompt: UserPrompt, text: str) -> int:
         if not text:

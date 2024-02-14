@@ -1,6 +1,6 @@
 
 
-from flow_prompt.prompt.chat import ChatCondition, ChatsEntity
+from flow_prompt.prompt.chat import ChatsEntity
 
 
 def test_chats_entity_resolve_not_multiple():

@@ -56,7 +56,7 @@ class OpenAIResponse(AIResponse):
     def to_dict(self) -> t.Dict[str, str]:
         return {
             "finish_reason": self.finish_reason,
-            "message": self.message,
+            "message": self.message.model_dump_json(indent=2),
             "content": self.content,
         }
 

@@ -20,12 +20,15 @@ class PipePrompt(BasePrompt):
     When you initialize a Prompt, chats will be sorted by priority and then by order of adding.
     """
 
-    id: str
+    id: str = None
     max_tokens: int = None
     min_sample_tokens: int = settings.DEFAULT_SAMPLE_MIN_BUDGET
     reserved_tokens_budget_for_sampling: int = None
+    version: str = None
 
     def __post_init__(self):
+        if not self.id:
+            raise ValueError("PipePrompt id is required")
         PIPE_PROMPTS[self.id] = self
 
     def get_max_tokens(self, ai_attempt: AttemptToCall) -> int:
@@ -59,6 +62,31 @@ class PipePrompt(BasePrompt):
             },
             "pipe": self.pipe,
         }
+
+    def service_dump(self) -> dict:
+        dump = {
+            "prompt_id": self.id,
+            "max_tokens": self.max_tokens,
+            "min_sample_tokens": self.min_sample_tokens,
+            "reserved_tokens_budget_for_sampling": self.reserved_tokens_budget_for_sampling,
+            "chats": [chat_value.dump() for chat_value in self.chats],
+            "version": self.version,
+        }
+        return dump
+
+    def service_load(cls, data) -> "PipePrompt":
+        prompt = cls(
+            id=data["id"],
+            max_tokens=data["max_tokens"],
+            min_sample_tokens=data.get("min_sample_tokens"),
+            reserved_tokens_budget_for_sampling=data.get(
+                "reserved_tokens_budget_for_sampling"
+            ),
+            version=data.get("version"),
+        )
+        for chat_value in data["chats"]:
+            prompt.add(**chat_value)
+        return prompt
 
     @classmethod
     def load(cls, data):
