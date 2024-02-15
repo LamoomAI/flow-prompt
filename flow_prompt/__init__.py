@@ -1,7 +1,7 @@
 from flow_prompt.prompt.flow_prompt import FlowPrompt
 from flow_prompt.ai_models import behaviour
 from flow_prompt.prompt.pipe_prompt import PipePrompt
-from flow_prompt.secrets import AZURE_KEYS, OPENAI_API_KEY, OPENAI_ORG
+from flow_prompt.secrets import secrets
 from flow_prompt.ai_models.openai.behaviours import (
     OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR,
     OPENAI_GPT4_1106_PREVIEW_BEHAVIOUR,

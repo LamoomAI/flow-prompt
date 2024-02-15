@@ -28,13 +28,17 @@ class FlowPrompt:
     azure_keys: t.Dict[str, str] = None
 
     def __post_init__(self):
-        if not self.azure_keys and secrets.AZURE_KEYS:
-            self.azure_keys = secrets.AZURE_KEYS
-        if not self.api_token:
+        if not self.azure_keys and secrets.AZURE_OPENAI_KEYS:
+            logger.info(f"Using Azure keys from secrets")
+            self.azure_keys = secrets.AZURE_OPENAI_KEYS
+        if not self.api_token and secrets.API_TOKEN:
+            logger.info(f"Using API token from secrets")
             self.api_token = secrets.API_TOKEN
-        if not self.openai_api_key:
+        if not self.openai_api_key and secrets.OPENAI_API_KEY:
+            logger.info(f"Using OpenAI API key from secrets")
             self.openai_api_key = secrets.OPENAI_API_KEY
-        if not self.openai_org:
+        if not self.openai_org and secrets.OPENAI_ORG:
+            logger.info(f"Using OpenAI organization from secrets")
             self.openai_org = secrets.OPENAI_ORG
         self.service = FlowPromptService()
         if self.openai_api_key:
@@ -144,7 +148,7 @@ class FlowPrompt:
             if response.prompt_is_actual:
                 return prompt
             else:
-                return PipePrompt.load(response.actual_prompt)
+                return PipePrompt.service_load(response.actual_prompt)
         else:
             return settings.PIPE_PROMPTS[prompt_id]
 

@@ -37,6 +37,10 @@ class BasePrompt:
         presentation: t.Optional[str] = None,
         last_words: t.Optional[str] = None,
     ):
+        if not isinstance(content, str):
+            logger.warning(f"content is not string: {content}, assignig str of it")
+            content = str(content)
+
         chat_value = ChatsEntity(
             role=role,
             content=(content or ""),

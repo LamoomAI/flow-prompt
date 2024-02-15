@@ -12,7 +12,7 @@ from flow_prompt.settings import PIPE_PROMPTS
 logger = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+@dataclass
 class PipePrompt(BasePrompt):
     """
     PipePrompt is a class that represents a pipe of chats that will be used to generate a prompt.
@@ -74,11 +74,12 @@ class PipePrompt(BasePrompt):
         }
         return dump
 
+    @classmethod
     def service_load(cls, data) -> "PipePrompt":
         prompt = cls(
-            id=data["id"],
+            id=data["prompt_id"],
             max_tokens=data["max_tokens"],
-            min_sample_tokens=data.get("min_sample_tokens"),
+            min_sample_tokens=data.get("min_sample_tokens") or  cls.min_sample_tokens,
             reserved_tokens_budget_for_sampling=data.get(
                 "reserved_tokens_budget_for_sampling"
             ),
