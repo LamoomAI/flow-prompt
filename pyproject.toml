@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Kate Yanchenko <kate@lamoom.com>"]
 readme = "README.md"
