@@ -124,10 +124,15 @@ response = flow.call(
 4. Use the response:
 Attrs will be set for the response:
 ```
-response.finish_reason
-response.message
-response.content
-response.original_result
+response.finish_reason: str like (
+    FINISH_REASON_LENGTH = "length"
+    FINISH_REASON_ERROR = "error"
+    FINISH_REASON_FINISH = "stop"
+    FINISH_REASON_TOOL_CALLS = "tool_calls"
+)
+response.message: openai.types.chat.ChatCompletionMessage
+response.content : str
+response.original_result: ChatCompletion | AsyncStream[ChatCompletionChunk]
 ```
 
 5. We know, it sounds like overhead. And we agree, but to have a mechanism of running production code you need at leat make a proper setup. And after you can manage your prompt easily:
