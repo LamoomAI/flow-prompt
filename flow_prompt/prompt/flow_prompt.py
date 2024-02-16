@@ -9,7 +9,7 @@ from flow_prompt import secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
-from flow_prompt.exceptions import RetryableCustomException
+from flow_prompt.exceptions import FlowPromptIsnotFoundException, RetryableCustomException
 from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
 from flow_prompt.prompt.user_prompt import UserPrompt
@@ -144,7 +144,8 @@ class FlowPrompt:
                 if prompt:
                     return prompt
                 else:
-                    raise e
+                    logger.exception(f"Prompt {prompt_id} not found")
+                    raise FlowPromptIsnotFoundException()
             if response.prompt_is_actual:
                 return prompt
             else:

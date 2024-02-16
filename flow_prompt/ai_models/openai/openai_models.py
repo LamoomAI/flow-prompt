@@ -120,7 +120,7 @@ class OpenAIModel(AIModel):
         }
 
     def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
-        print(messages, max_tokens, kwargs)
+        logger.debug(f'Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}')
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
             return self.call_chat_completion(messages, max_tokens, **kwargs)
         raise NotImplementedError(
