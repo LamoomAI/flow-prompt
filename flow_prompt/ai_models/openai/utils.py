@@ -1,9 +1,9 @@
 import logging
-from urllib import request
+import requests
 
 import openai
 
-from .exceptions import (
+from flow_prompt.ai_models.openai.exceptions import (
     OpenAIAuthenticationError,
     OpenAIBadRequestException,
     OpenAIChunkedEncodingError,
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def raise_openai_exception(
     exc: Exception,
 ) -> None:
-    if isinstance(exc, request.exceptions.ChunkedEncodingError):
+    if isinstance(exc, requests.exceptions.ChunkedEncodingError):
         raise OpenAIChunkedEncodingError()
 
     if isinstance(exc, openai.APITimeoutError):

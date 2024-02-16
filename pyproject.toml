@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.0"
+version = "0.1.2"
 description = ""
 authors = ["Kate Yanchenko <kate@lamoom.com>"]
 readme = "README.md"
@@ -10,7 +10,6 @@ python = "^3.9"
 tiktoken = "^0.5.2"
 openai = "^1.9.0"
 
-
 [tool.poetry.dev-dependencies]
 isort = "^5.13.2"
 flake8 = "^7.0.0"
@@ -18,6 +17,7 @@ pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 pre-commit = "^3.6.0"
 autopep8 = "^2.0.4"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

@@ -1,8 +1,7 @@
-import json
 import logging
 import typing as t
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from flow_prompt.exceptions import ValueIsNotResolvedException
 from flow_prompt.utils import resolve
@@ -14,25 +13,6 @@ logger = logging.getLogger(__name__)
 class ValuesCost:
     values: t.List[str]
     cost: int
-
-
-@dataclass
-class ChatCondition:
-    if_exists: t.Optional[str] = None
-    if_not_exist: t.Optional[str] = None
-
-    def dump(self):
-        return {
-            "if_exists": self.if_exists,
-            "if_not_exist": self.if_not_exist,
-        }
-
-    @classmethod
-    def load(cls, data):
-        return cls(
-            if_exists=data.get("if_exists"),
-            if_not_exist=data.get("if_not_exist"),
-        )
 
 
 class ChatMessage:
@@ -81,7 +61,6 @@ class ChatsEntity:
     required: bool = False
     is_multiple: bool = False
     while_fits: bool = False
-    condition: ChatCondition = field(default_factory=ChatCondition)
     add_in_reverse_order: bool = False
     in_one_message: bool = False
     continue_if_doesnt_fit: bool = False
@@ -122,6 +101,8 @@ class ChatsEntity:
             return result
 
         content = resolve(content, context)
+        if not content:
+            return []
         return [
             ChatMessage(
                 name=self.name,
@@ -133,29 +114,18 @@ class ChatsEntity:
             )
         ]
 
-    def validate(self, values: t.List[ChatMessage], context: t.Dict[str, str]):
-        if self.condition.if_exists and not context.get(self.condition.if_exists):
-            raise ValueIsNotResolvedException(
-                f"If exists condition is not met for {self.prompt}"
-            )
-        if self.condition.if_not_exist and context.get(self.condition.if_not_exist):
-            raise ValueIsNotResolvedException(
-                f"If not exists condition is not met for {self.prompt}"
-            )
-
     def get_values(self, context: t.Dict[str, str]) -> t.List[ChatMessage]:
         try:
             values = self.resolve(context)
-            self.validate(values, context)
         except Exception as e:
             logger.error(
-                f"Error resolving prompt {self.prompt}, error: {e}", exc_info=True
+                f"Error resolving prompt {self.content}, error: {e}", exc_info=True
             )
             return []
         return values
 
     def dump(self):
-        return {
+        data = {
             "content": self.content,
             "role": self.role,
             "name": self.name,
@@ -164,7 +134,6 @@ class ChatsEntity:
             "required": self.required,
             "is_multiple": self.is_multiple,
             "while_fits": self.while_fits,
-            "condition": self.condition.dump(),
             "add_in_reverse_order": self.add_in_reverse_order,
             "in_one_message": self.in_one_message,
             "continue_if_doesnt_fit": self.continue_if_doesnt_fit,
@@ -175,6 +144,10 @@ class ChatsEntity:
             "ref_name": self.ref_name,
             "ref_value": self.ref_value,
         }
+        for k, v in list(data.items()):
+            if v is None:
+                del data[k]
+        return data
 
     @classmethod
     def load(cls, data):
@@ -187,7 +160,6 @@ class ChatsEntity:
             required=data.get("required"),
             is_multiple=data.get("is_multiple"),
             while_fits=data.get("while_fits"),
-            condition=ChatCondition.load(data.get("condition")),
             add_in_reverse_order=data.get("add_in_reverse_order"),
             in_one_message=data.get("in_one_message"),
             continue_if_doesnt_fit=data.get("continue_if_doesnt_fit"),

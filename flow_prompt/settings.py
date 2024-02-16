@@ -1,4 +1,7 @@
+from dataclasses import dataclass
+import json
 import os
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP_SCRIPTS_DIR = os.environ.get(
@@ -21,10 +24,21 @@ SAFE_GAP_TOKENS: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_TOKENS", 100)
 SAFE_GAP_PER_MSG: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_PER_MSG", 4)
 DEFAULT_ENCODING = "cl100k_base"
 
-USE_API_SERVICE = os.environ.get("FLOW_PROMPT_USE_API_SERVICE", None)
+USE_API_SERVICE = os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True)
 
 CACHE_PROMPT_FOR_EACH_SECONDS = os.environ.get(
     "FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60
 )  # 5 minutes by default
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
+
+
+@dataclass
+class Secrets:
+    API_TOKEN = os.getenv("FLOW_PROMPT_API_TOKEN")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_ORG = os.getenv("OPENAI_ORG")
+    AZURE_OPENAI_KEYS = json.loads(os.getenv("AZURE_OPENAI_KEYS", "{}"))
+
+
+secrets = Secrets()

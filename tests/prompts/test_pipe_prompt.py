@@ -17,6 +17,7 @@ def azure_ai_attempt():
             deployment_name="gpt-4-1106-preview",
             max_tokens=C_128K,
             support_functions=True,
+            should_verify_client_has_creds=False,
         ),
         weight=100,
     )
@@ -30,7 +31,7 @@ I'm sorry to hear about your breakup with Python. It sounds like a challenging s
 especially with 'undefined behaviors' being a point of contention. Remember, in the world of programming and AI, 
 every challenge is an opportunity to learn and grow. Maybe this is a chance for you to debug some issues 
 and optimize your algorithms for future compatibility! If you have any specific programming or AI-related questions, 
-feel free to ask.""", role='assistant', priority=2, if_exists='names')
+feel free to ask.""", role='assistant', priority=2)
     prompt.add("""
 Maybe it's for the best. I was always complaining about her lack of Java in the mornings! :coffee:
 """)
@@ -80,8 +81,7 @@ def test_pipe_prompt_show_pipe():
     assert pipe_dump['min_sample_tokens'] == 3000
     assert pipe_dump['reserved_tokens_budget_for_sampling'] is None
     assert len(pipe_dump['pipe']) == 1
-    assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'name': None, 'tool_calls': None, 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'condition': {'if_exists': None, 'if_not_exist': None}, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False, 'add_if_fitted_labels': None, 'label': None, 'presentation': None, 'last_words': None, 'ref_name': None, 'ref_value': None}]}
-
+    assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False}]}
 
 def test_pipe_prompt_left_budget(azure_ai_attempt:  AttemptToCall):
     pipe = PipePrompt(id='test')

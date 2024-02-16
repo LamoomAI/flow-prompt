@@ -6,6 +6,10 @@ class RetryableCustomException(FlowPromptException):
     pass
 
 
+class FlowPromptIsnotFoundException(FlowPromptException):
+    pass
+
+
 class BehaviourIsNotDefined(FlowPromptException):
     pass
 
@@ -19,4 +23,8 @@ class NotEnoughBudgetException(FlowPromptException):
 
 
 class NotFoundPromptException(FlowPromptException):
+    pass
+
+
+class ProviderNotFoundException(FlowPromptException):
     pass

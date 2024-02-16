@@ -134,7 +134,9 @@ class UserPrompt(BasePrompt):
         ]
         max_sample_budget = left_budget = state.left_budget + self.min_sample_tokens
         if self.reserved_tokens_budget_for_sampling:
-            max_sample_budget = min(self.reserved_tokens_budget_for_sampling, left_budget)
+            max_sample_budget = min(
+                self.reserved_tokens_budget_for_sampling, left_budget
+            )
         return CallingMessages(
             references=state.references,
             messages=flat_list,
@@ -233,7 +235,7 @@ class UserPrompt(BasePrompt):
             if value.ref_name and value.ref_value:
                 state.references[value.ref_name].append(value.ref_value)
         if is_fully_fitted and chat_value.label:
-            state.fully_fitted.append(chat_value.label)
+            state.fully_fitted_pipitas.add(chat_value.label)
         return one_message_budget, [] if not one_message else [one_message]
 
     @property

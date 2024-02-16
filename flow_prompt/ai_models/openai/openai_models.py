@@ -7,6 +7,7 @@ from enum import Enum
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
+from flow_prompt.exceptions import ProviderNotFoundException
 
 from .utils import raise_openai_exception
 
@@ -70,6 +71,8 @@ class OpenAIModel(AIModel):
     support_functions: bool = False
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.OPENAI
     family: str = None
+    should_verify_client_has_creds: bool = True
+    max_sample_budget: int = C_4K
 
     def __str__(self) -> str:
         return f"openai-{self.model}-{self.family}"
@@ -86,12 +89,15 @@ class OpenAIModel(AIModel):
                 f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4"
             )
             self.family = FamilyModel.gpt4.value
-        self.verify_client_has_creds()
+        if self.should_verify_client_has_creds:
+            self.verify_client_has_creds()
         logger.info(f"Initialized OpenAIModel: {self}")
 
     def verify_client_has_creds(self):
         if self.provider not in settings.AI_CLIENTS:
-            raise Exception(f"Provider {self.provider} not found in AI_CLIENTS")
+            raise ProviderNotFoundException(
+                f"Provider {self.provider} not found in AI_CLIENTS"
+            )
 
     @property
     def name(self) -> str:
@@ -115,6 +121,9 @@ class OpenAIModel(AIModel):
         }
 
     def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
+        logger.debug(
+            f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
+        )
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
             return self.call_chat_completion(messages, max_tokens, **kwargs)
         raise NotImplementedError(f"Openai family {self.family} is not implemented")
@@ -129,7 +138,7 @@ class OpenAIModel(AIModel):
         functions: t.List[t.Dict[str, str]] = [],
         **kwargs,
     ) -> OpenAIResponse:
-        max_tokens = min(max_tokens, self.max_tokens)
+        max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
         common_args = {
             "top_p": 1,
             "temperature": 0,
@@ -157,6 +166,7 @@ class OpenAIModel(AIModel):
                 message=result.choices[0].message,
                 content=result.choices[0].message.content,
                 original_result=result,
+                prompt_messages=kwargs.get("messages"),
             )
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)

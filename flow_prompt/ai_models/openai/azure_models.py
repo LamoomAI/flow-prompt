@@ -7,6 +7,7 @@ from openai import AzureOpenAI
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.openai.openai_models import FamilyModel, OpenAIModel
+from flow_prompt.exceptions import ProviderNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +59,15 @@ class AzureAIModel(OpenAIModel):
                     f"Unknown family for {self.deployment_name}. Please add it obviously. Setting as GPT4"
                 )
                 self.family = FamilyModel.gpt4.value
-        self.verify_client_has_creds()
+        if self.should_verify_client_has_creds:
+            self.verify_client_has_creds()
         logger.info(f"Initialized AzureAIModel: {self}")
 
     def verify_client_has_creds(self):
         if self.realm not in settings.AI_CLIENTS[self.provider]:
-            raise Exception(f"Realm {self.realm} not found in AI_CLIENTS")
+            raise ProviderNotFoundException(
+                f"Realm {self.realm} not found in AI_CLIENTS"
+            )
 
     @property
     def name(self) -> str:
