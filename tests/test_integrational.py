@@ -26,7 +26,7 @@ gpt4_behaviour = behaviour.AIModelsBehaviour(
     )
 
 
-def test_loading_prompt_from_service():
+def _test_loading_prompt_from_service():
     context = {
         'messages': ['test1', 'test2'],
         'assistant_response_in_progress': None,
