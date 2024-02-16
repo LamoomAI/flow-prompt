@@ -9,7 +9,10 @@ from flow_prompt import secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
-from flow_prompt.exceptions import FlowPromptIsnotFoundException, RetryableCustomException
+from flow_prompt.exceptions import (
+    FlowPromptIsnotFoundException,
+    RetryableCustomException,
+)
 from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
 from flow_prompt.prompt.user_prompt import UserPrompt
@@ -56,14 +59,11 @@ class FlowPrompt:
                         f"Realm {realm} already initialized. Rewriting it with new data"
                     )
                 settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE][realm] = AzureOpenAI(
-                    api_version=key_data.get(
-                        "api_version", "2023-07-01-preview"),
+                    api_version=key_data.get("api_version", "2023-07-01-preview"),
                     azure_endpoint=key_data["url"],
                     api_key=key_data["key"],
                 )
-                logger.info(
-                    f"Initialized Azure client for {realm} {key_data['url']}"
-                )
+                logger.info(f"Initialized Azure client for {realm} {key_data['url']}")
         self.worker = SaveWorker()
 
     def call(
@@ -81,8 +81,7 @@ class FlowPrompt:
         start_time = current_timestamp_ms()
         total_price = Decimal(0)
         pipe_prompt = self.get_pipe_prompt(prompt_id, version)
-        prompt_attempts = PromptAttempts(
-            behaviour, count_of_retries=count_of_retries)
+        prompt_attempts = PromptAttempts(behaviour, count_of_retries=count_of_retries)
 
         while prompt_attempts.initialize_attempt():
             current_attempt = prompt_attempts.current_attempt

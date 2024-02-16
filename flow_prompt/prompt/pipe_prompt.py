@@ -79,7 +79,7 @@ class PipePrompt(BasePrompt):
         prompt = cls(
             id=data["prompt_id"],
             max_tokens=data["max_tokens"],
-            min_sample_tokens=data.get("min_sample_tokens") or  cls.min_sample_tokens,
+            min_sample_tokens=data.get("min_sample_tokens") or cls.min_sample_tokens,
             reserved_tokens_budget_for_sampling=data.get(
                 "reserved_tokens_budget_for_sampling"
             ),

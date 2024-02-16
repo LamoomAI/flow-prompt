@@ -96,7 +96,8 @@ class OpenAIModel(AIModel):
     def verify_client_has_creds(self):
         if self.provider not in settings.AI_CLIENTS:
             raise ProviderNotFoundException(
-                f"Provider {self.provider} not found in AI_CLIENTS")
+                f"Provider {self.provider} not found in AI_CLIENTS"
+            )
 
     @property
     def name(self) -> str:
@@ -120,11 +121,12 @@ class OpenAIModel(AIModel):
         }
 
     def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
-        logger.debug(f'Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}')
+        logger.debug(
+            f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
+        )
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
             return self.call_chat_completion(messages, max_tokens, **kwargs)
-        raise NotImplementedError(
-            f"Openai family {self.family} is not implemented")
+        raise NotImplementedError(f"Openai family {self.family} is not implemented")
 
     def get_client(self):
         return settings.AI_CLIENTS[self.provider]
@@ -164,8 +166,8 @@ class OpenAIModel(AIModel):
                 message=result.choices[0].message,
                 content=result.choices[0].message.content,
                 original_result=result,
+                prompt_messages=kwargs.get("messages"),
             )
         except Exception as e:
-            logger.exception(
-                "[OPENAI] failed to handle chat stream", exc_info=e)
+            logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)
             raise_openai_exception(e)

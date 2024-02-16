@@ -59,12 +59,15 @@ class AzureAIModel(OpenAIModel):
                     f"Unknown family for {self.deployment_name}. Please add it obviously. Setting as GPT4"
                 )
                 self.family = FamilyModel.gpt4.value
-        self.verify_client_has_creds()
+        if self.should_verify_client_has_creds:
+            self.verify_client_has_creds()
         logger.info(f"Initialized AzureAIModel: {self}")
 
     def verify_client_has_creds(self):
         if self.realm not in settings.AI_CLIENTS[self.provider]:
-            raise ProviderNotFoundException(f"Realm {self.realm} not found in AI_CLIENTS")
+            raise ProviderNotFoundException(
+                f"Realm {self.realm} not found in AI_CLIENTS"
+            )
 
     @property
     def name(self) -> str:

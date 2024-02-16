@@ -1,16 +1,17 @@
+from dataclasses import dataclass
+import json
 import os
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP_SCRIPTS_DIR = os.environ.get(
     "FLOW_PROMPT_TEMP_SCRIPTS_DIR", os.path.join(BASE_DIR, "temp_scripts")
 )
-SAVE_PROMPTS_LOCALLY = os.environ.get(
-    "FLOW_PROMPT_SAVE_PROMPTS_LOCALLY", False)
+SAVE_PROMPTS_LOCALLY = os.environ.get("FLOW_PROMPT_SAVE_PROMPTS_LOCALLY", False)
 ENVIRONMENT = os.environ.get("FLOW_PROMPT_ENVIRONMENT", "prod")
 
 DEFAULT_MAX_BUDGET = os.environ.get("FLOW_PROMPT_DEFAULT_MAX_BUDGET", 16000)
-DEFAULT_SAMPLE_MIN_BUDGET = os.environ.get(
-    "FLOW_PROMPT_DEFAULT_ANSWER_BUDGET", 3000)
+DEFAULT_SAMPLE_MIN_BUDGET = os.environ.get("FLOW_PROMPT_DEFAULT_ANSWER_BUDGET", 3000)
 DEFAULT_PROMPT_BUDGET = os.environ.get(
     "FLOW_PROMPT_DEFAULT_PROMPT_BUDGET", DEFAULT_MAX_BUDGET - DEFAULT_SAMPLE_MIN_BUDGET
 )
@@ -30,3 +31,14 @@ CACHE_PROMPT_FOR_EACH_SECONDS = os.environ.get(
 )  # 5 minutes by default
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
+
+
+@dataclass
+class Secrets:
+    API_TOKEN = os.getenv("FLOW_PROMPT_API_TOKEN")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_ORG = os.getenv("OPENAI_ORG")
+    AZURE_OPENAI_KEYS = json.loads(os.getenv("AZURE_OPENAI_KEYS", "{}"))
+
+
+secrets = Secrets()

@@ -114,13 +114,11 @@ class UserPrompt(BasePrompt):
                     if chat_value.required:
                         raise NotEnoughBudgetException("Not enough budget")
                     continue
-                logger.debug(
-                    f"adding {len(messages)} messages for {chat_value}")
+                logger.debug(f"adding {len(messages)} messages for {chat_value}")
                 state.left_budget -= messages_budget
                 prompt_budget += messages_budget
                 if chat_value.presentation:
-                    messages[0].content = chat_value.presentation + \
-                        messages[0].content
+                    messages[0].content = chat_value.presentation + messages[0].content
                 if chat_value.last_words:
                     messages[-1].content += chat_value.last_words
                 pipe[chat_value._uuid] = messages
@@ -237,7 +235,7 @@ class UserPrompt(BasePrompt):
             if value.ref_name and value.ref_value:
                 state.references[value.ref_name].append(value.ref_value)
         if is_fully_fitted and chat_value.label:
-            state.fully_fitted.append(chat_value.label)
+            state.fully_fitted_pipitas.add(chat_value.label)
         return one_message_budget, [] if not one_message else [one_message]
 
     @property
@@ -247,10 +245,8 @@ class UserPrompt(BasePrompt):
     def calculate_budget_for_value(self, value: ChatMessage) -> int:
         content = len(self.encoding.encode(value.content))
         role = len(self.encoding.encode(value.role))
-        tool_calls = len(self.encoding.encode(
-            value.tool_calls.get("name", "")))
-        arguments = len(self.encoding.encode(
-            value.tool_calls.get("arguments", "")))
+        tool_calls = len(self.encoding.encode(value.tool_calls.get("name", "")))
+        arguments = len(self.encoding.encode(value.tool_calls.get("arguments", "")))
         return content + role + tool_calls + arguments + settings.SAFE_GAP_PER_MSG
 
     def is_value_not_empty(self, value: ChatMessage) -> bool:
@@ -270,8 +266,7 @@ class UserPrompt(BasePrompt):
 
         for value in values:
             if not self.is_value_not_empty(value):
-                logger.info(
-                    f"[{self.task_name}]: is_value_not_empty failed {value}")
+                logger.info(f"[{self.task_name}]: is_value_not_empty failed {value}")
                 continue
             budget += self.calculate_budget_for_value(value)
             result.append(value)

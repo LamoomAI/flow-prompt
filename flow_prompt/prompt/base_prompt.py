@@ -25,8 +25,6 @@ class BasePrompt:
         tool_calls: t.Dict[str, str] = None,
         priority: int = 0,
         required: bool = False,
-        if_exists: t.Optional[str] = None,
-        if_not_exist: t.Optional[str] = None,
         is_multiple: bool = False,
         while_fits: bool = False,
         add_in_reverse_order: bool = False,

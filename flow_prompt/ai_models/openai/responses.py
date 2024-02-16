@@ -22,6 +22,7 @@ class OpenAIResponse(AIResponse):
     finish_reason: str = ""
     message: Message = None
     exception: t.Optional[Exception] = None
+    prompt_messages: t.List[dict] = None
 
     @property
     def response(self) -> str:

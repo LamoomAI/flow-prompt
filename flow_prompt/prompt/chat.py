@@ -1,7 +1,7 @@
 import logging
 import typing as t
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from flow_prompt.exceptions import ValueIsNotResolvedException
 from flow_prompt.utils import resolve
@@ -13,25 +13,6 @@ logger = logging.getLogger(__name__)
 class ValuesCost:
     values: t.List[str]
     cost: int
-
-
-@dataclass
-class ChatCondition:
-    if_exists: t.Optional[str] = None
-    if_not_exist: t.Optional[str] = None
-
-    def dump(self):
-        return {
-            "if_exists": self.if_exists,
-            "if_not_exist": self.if_not_exist,
-        }
-
-    @classmethod
-    def load(cls, data):
-        return cls(
-            if_exists=data.get("if_exists"),
-            if_not_exist=data.get("if_not_exist"),
-        )
 
 
 class ChatMessage:
@@ -80,7 +61,6 @@ class ChatsEntity:
     required: bool = False
     is_multiple: bool = False
     while_fits: bool = False
-    condition: ChatCondition = field(default_factory=ChatCondition)
     add_in_reverse_order: bool = False
     in_one_message: bool = False
     continue_if_doesnt_fit: bool = False
@@ -99,8 +79,7 @@ class ChatsEntity:
         content = self.content
         if self.is_multiple:
             # should be just one value like {messages} in prompt
-            prompt_value = content.strip().replace(
-                "{", "").replace("}", "").strip()
+            prompt_value = content.strip().replace("{", "").replace("}", "").strip()
             values = context.get(prompt_value, [])
             if not values:
                 return []
@@ -112,8 +91,7 @@ class ChatsEntity:
                 # verify that values are json list of ChatMessage
                 try:
                     result = [
-                        ChatMessage(
-                            **({"content": c} if isinstance(c, str) else c))
+                        ChatMessage(**({"content": c} if isinstance(c, str) else c))
                         for c in values
                     ]
                 except TypeError as e:
@@ -136,20 +114,9 @@ class ChatsEntity:
             )
         ]
 
-    def validate(self, values: t.List[ChatMessage], context: t.Dict[str, str]):
-        if self.condition.if_exists and not context.get(self.condition.if_exists):
-            raise ValueIsNotResolvedException(
-                f"If exists condition is not met for {self.content}"
-            )
-        if self.condition.if_not_exist and context.get(self.condition.if_not_exist):
-            raise ValueIsNotResolvedException(
-                f"If not exists condition is not met for {self.content}"
-            )
-
     def get_values(self, context: t.Dict[str, str]) -> t.List[ChatMessage]:
         try:
             values = self.resolve(context)
-            self.validate(values, context)
         except Exception as e:
             logger.error(
                 f"Error resolving prompt {self.content}, error: {e}", exc_info=True
@@ -193,7 +160,6 @@ class ChatsEntity:
             required=data.get("required"),
             is_multiple=data.get("is_multiple"),
             while_fits=data.get("while_fits"),
-            condition=ChatCondition.load(data.get("condition")),
             add_in_reverse_order=data.get("add_in_reverse_order"),
             in_one_message=data.get("in_one_message"),
             continue_if_doesnt_fit=data.get("continue_if_doesnt_fit"),

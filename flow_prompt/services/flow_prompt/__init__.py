@@ -46,12 +46,9 @@ class FlowPromptService:
         cached_data = self.get_cached_prompt(prompt_id)
         if cached_data:
             cached_prompt = cached_data.get("prompt")
-            cached_prompt_taken_globally = cached_data.get(
-                "prompt_taken_globally")
+            cached_prompt_taken_globally = cached_data.get("prompt_taken_globally")
             if cached_prompt:
-                logger.debug(
-                    f"Prompt {prompt_id} is cached"
-                )
+                logger.debug(f"Prompt {prompt_id} is cached")
                 return FlowPromptServiceResponse(
                     prompt_id=prompt_id,
                     actual_prompt=cached_prompt,
@@ -100,7 +97,7 @@ class FlowPromptService:
         if cached_delay < settings.CACHE_PROMPT_FOR_EACH_SECONDS * 1000:
             return cached_data
         return None
-    
+
     @classmethod
     def clear_cache(cls):
         cls.cached_prompts = {}
