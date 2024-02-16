@@ -9,8 +9,6 @@ readme = "README.md"
 python = "^3.9"
 tiktoken = "^0.5.2"
 openai = "^1.9.0"
-python-dotenv = "^1.0.1"
-
 
 [tool.poetry.dev-dependencies]
 isort = "^5.13.2"
@@ -19,6 +17,7 @@ pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 pre-commit = "^3.6.0"
 autopep8 = "^2.0.4"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
