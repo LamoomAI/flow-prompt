@@ -25,8 +25,8 @@ To add OPENAI_KEYs, you can do that by any of that instructions:
 - using as global variable:
 ```
 import flow_prompt
-flow_prompt.OPENAI_API_KEY = None
-flow_prompt.OPENAI_ORG = None
+flow_prompt.secrets.OPENAI_API_KEY = None
+flow_prompt.secrets.OPENAI_ORG = None
 ```
 
 ### Azure Keys
@@ -39,7 +39,7 @@ Because Azure has several realms, and on each independent rate limits (not menti
 - using global variable:
 ```
 import flow_prompt
-flow_prompt.AZURE_KEYS = {"uswest":{"url": "https://baseurl.azure.com/", "key": "secret"}}
+flow_prompt.secrets.AZURE_KEYS = {"uswest":{"url": "https://baseurl.azure.com/", "key": "secret"}}
 ```
 
 ### FlowPrompt Keys
@@ -49,7 +49,7 @@ To receive dynamic changes of the prompt, to record LLM interactions, metrics an
 - using as global variable:
 ```
 import flow_prompt
-flow_prompt.API_TOKEN = None
+flow_prompt.secrets.API_TOKEN = None
 ```
 ## Usage examples:
 
@@ -60,7 +60,7 @@ prompt = PipePrompt('merge_code')
 
 prompt.add("It's a system message, Hello {name}", role="system")
 
-# Be sure that indexed context is prioritized first, add it until it fits.
+# Condition: Be sure that indexed context is prioritized first, add it's added until it fits.
 # Start with `The closest indexed context`, if there are no indexed context do not add the "closest indexed context"
 prompt.add('{indexed_context}',
     priority=2, 
@@ -81,8 +81,9 @@ prompt.add('{assistant_response_in_progress}',
 )
 ```
 
-2. Use OPENAI_BEHAVIOR or add your own Behaviour, you can set max count of attempts, if you have different AI Models, if the first attempt will fail, the second will be called, based on the weights.
-
+2. Use Behavious:
+- use OPENAI_BEHAVIOR
+- or add your own Behaviour, you can set max count of attempts, if you have different AI Models, if the first attempt will fail because of retryable error, the second will be called, based on the weights.
 ```
 from flow_prompt import OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
 flow_behaviour = OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
@@ -115,7 +116,17 @@ flow_behaviour = behaviour.AIModelsBehaviour(
 
 3. Finally, call AI Model, with flow_prompt:
 ```
-flow = FlowPrompt(azure_openai_keys={"name_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}}, openai_api_key={key}, openai_org={org})
+flow = FlowPrompt(
+    azure_openai_keys={
+        "name_realm":{
+            "url": "https://baseurl.azure.com/",
+            "key": "secret"
+            }
+        },
+    openai_api_key={key},
+    openai_org={org}
+)
+context = {"name": "World!"}
 response = flow.call(
     prompt.id, context, flow_behaviour
 )
@@ -132,7 +143,7 @@ response.finish_reason: str like (
 )
 response.message: openai.types.chat.ChatCompletionMessage
 response.content : str
-response.original_result: ChatCompletion | AsyncStream[ChatCompletionChunk]
+response.original_result: openai.types.chat.ChatCompletion | openai.types.chat.AsyncStream[openai.types.chat.ChatCompletionChunk]
 ```
 
 5. We know, it sounds like overhead. And we agree, but to have a mechanism of running production code you need at leat make a proper setup. And after you can manage your prompt easily:
