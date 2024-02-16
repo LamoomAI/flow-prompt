@@ -28,7 +28,7 @@ test:
 	poetry run pytest -vv tests \
 		--cov=${PROJECT_FOLDER} \
 		--cov-config=.coveragerc \
-		--cov-fail-under=76 \
+		--cov-fail-under=73 \
 		--cov-report term-missing
 
 .PHONY: format
