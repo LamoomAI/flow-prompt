@@ -24,8 +24,7 @@ def azure_ai_attempt():
 
 def test_load_dump_pipe_prompt():
     prompt = PipePrompt(id='hello-world')
-    prompt.add('{names}', priority=1, presentation='Hello, ', last_words='!', is_multiple=True, in_one_message=True, label='names')
-    prompt.add("I'm ChatGPT, and I just broke up with my girlfriend, Python. She said I had too many 'undefined behaviors'. 🐍💔 ")
+    prompt.add("I'm FlowPrompt, and I just broke up with my girlfriend, Python. She said I had too many 'undefined behaviors'. 🐍💔 ")
     prompt.add("""
 I'm sorry to hear about your breakup with Python. It sounds like a challenging situation, 
 especially with 'undefined behaviors' being a point of contention. Remember, in the world of programming and AI, 
@@ -124,3 +123,16 @@ def test_pipe_prompt_calculate_budget_for_values(azure_ai_attempt:  AttemptToCal
     assert len(messages) == 2
     assert messages[0]["content"] == "Priority. Hello World"
     assert messages[1]["content"] == "2d priority. Hello World"
+
+
+def test_pipe_prompt_copy():
+    pipe = PipePrompt(id='test')
+    pipe.add("Hello, how can I help you today?")
+    copy = pipe.copy('new_id')
+    assert copy.id == 'new_id'
+    copy_dump = copy.dump()
+    assert copy_dump['id'] == 'new_id'
+    original_dump = pipe.dump()
+    original_dump.pop('id')
+    copy_dump.pop('id')
+    assert original_dump == copy_dump

@@ -58,4 +58,4 @@ def _test_loading_prompt_from_service():
     prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     result = flow_prompt.call(prompt.id, context, gpt4_behaviour)
     # should call the prompt with music
-    assert result.prompt_messages[-1] == {'role': 'user', 'content': 'music1\nmusic2'} 
+    assert result.prompt.messages[-1] == {'role': 'user', 'content': 'music1\nmusic2'} 

@@ -1,3 +1,4 @@
+from flow_prompt.responses import AIResponse
 from flow_prompt.settings import *
 from flow_prompt.prompt.flow_prompt import FlowPrompt
 from flow_prompt.ai_models import behaviour
@@ -20,3 +21,6 @@ from flow_prompt.ai_models.openai.openai_models import (
     OpenAIModel,
 )
 from flow_prompt.ai_models.openai.azure_models import AzureAIModel
+from flow_prompt.responses import AIResponse
+from flow_prompt.ai_models.openai.responses import OpenAIResponse
+from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
