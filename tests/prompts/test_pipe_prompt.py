@@ -123,3 +123,16 @@ def test_pipe_prompt_calculate_budget_for_values(azure_ai_attempt:  AttemptToCal
     assert len(messages) == 2
     assert messages[0]["content"] == "Priority. Hello World"
     assert messages[1]["content"] == "2d priority. Hello World"
+
+
+def test_pipe_prompt_copy():
+    pipe = PipePrompt(id='test')
+    pipe.add("Hello, how can I help you today?")
+    copy = pipe.copy('new_id')
+    assert copy.id == 'new_id'
+    copy_dump = copy.dump()
+    assert copy_dump['id'] == 'new_id'
+    original_dump = pipe.dump()
+    original_dump.pop('id')
+    copy_dump.pop('id')
+    assert original_dump == copy_dump
