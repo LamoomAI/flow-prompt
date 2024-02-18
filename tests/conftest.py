@@ -95,8 +95,7 @@ def gpt_4_behaviour():
 @pytest.fixture
 def hello_world_prompt():
     prompt = PipePrompt(id='hello-world')
-    prompt.add('{names}', priority=1, presentation='Hello, ', last_words='!', is_multiple=True, in_one_message=True)
-    prompt.add("I'm ChatGPT, and I just broke up with my girlfriend, Python. She said I had too many 'undefined behaviors'. 🐍💔 ")
+    prompt.add("I'm FlowPrompt, and I just broke up with my girlfriend, Python. She said I had too many 'undefined behaviors'. 🐍💔 ")
     prompt.add("""
 I'm sorry to hear about your breakup with Python. It sounds like a challenging situation, 
 especially with 'undefined behaviors' being a point of contention. Remember, in the world of programming and AI, 

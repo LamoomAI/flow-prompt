@@ -52,3 +52,15 @@ clean-pyc:
 clean-test:
 		rm -f .coverage
 		rm -fr htmlcov/
+
+
+publish-test-prerelease:
+	poetry version prerelease
+	poetry build
+	twine upload --repository testpypi dist/*
+
+
+publish-release:
+	poetry version patch
+	poetry build
+	poetry publish

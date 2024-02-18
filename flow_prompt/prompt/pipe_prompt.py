@@ -29,6 +29,9 @@ class PipePrompt(BasePrompt):
     def __post_init__(self):
         if not self.id:
             raise ValueError("PipePrompt id is required")
+        self._save_in_local_storage()
+
+    def _save_in_local_storage(self):
         PIPE_PROMPTS[self.id] = self
 
     def get_max_tokens(self, ai_attempt: AttemptToCall) -> int:
@@ -106,3 +109,9 @@ class PipePrompt(BasePrompt):
             priorities=priorities,
             pipe=data["pipe"],
         )
+
+    def copy(self, prompt_id: str):
+        prompt = deepcopy(self)
+        prompt.id = prompt_id
+        prompt._save_in_local_storage()
+        return prompt

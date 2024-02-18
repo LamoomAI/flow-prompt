@@ -79,7 +79,6 @@ class FlowPrompt:
         Call flow prompt with context and behaviour
         """
         start_time = current_timestamp_ms()
-        total_price = Decimal(0)
         pipe_prompt = self.get_pipe_prompt(prompt_id, version)
         prompt_attempts = PromptAttempts(behaviour, count_of_retries=count_of_retries)
 
@@ -96,13 +95,14 @@ class FlowPrompt:
                     calling_messages.max_sample_budget,
                     **params,
                 )
-                price_of_call = self.get_price(
+                result.metrics.price_of_call = self.get_price(
                     current_attempt,
                     self.calculate_budget_for_text(
                         user_prompt, result.get_message_str()
                     ),
                     calling_messages.prompt_budget,
                 )
+
                 if settings.USE_API_SERVICE and self.api_token:
                     self.worker.add_task(
                         self.api_token,
@@ -111,7 +111,7 @@ class FlowPrompt:
                         result,
                         {
                             "attempt_number": current_attempt.attempt_number,
-                            "price": price_of_call,
+                            "price": result.metrics.price_of_call,
                             "latency": current_timestamp_ms() - start_time,
                         },
                     )

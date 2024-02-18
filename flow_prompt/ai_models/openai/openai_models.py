@@ -8,6 +8,7 @@ from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 from flow_prompt.exceptions import ProviderNotFoundException
+from flow_prompt.responses import Prompt
 
 from .utils import raise_openai_exception
 
@@ -166,7 +167,7 @@ class OpenAIModel(AIModel):
                 message=result.choices[0].message,
                 content=result.choices[0].message.content,
                 original_result=result,
-                prompt_messages=kwargs.get("messages"),
+                prompt=Prompt(messages=kwargs.get("messages")),
             )
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)
