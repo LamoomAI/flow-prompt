@@ -4,9 +4,6 @@ import flow_prompt
 from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, C_128K
 import dotenv
 
-from flow_prompt.services.flow_prompt import FlowPromptService
-from flow_prompt.settings import PIPE_PROMPTS
-
 dotenv.load_dotenv(dotenv.find_dotenv())
 flow_prompt=FlowPrompt()
 

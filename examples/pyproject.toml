@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "examples"
+version = "0.1.0"
+description = ""
+authors = ["Kate Yanchenko <kate@lamoom.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flow-prompt = {version = "^0.1.4a6", source = "test-pypi"}
+python-dotenv = "^1.0.1"
+
+[[tool.poetry.source]]
+name = "test-pypi"
+url = "https://test.pypi.org/simple/"
+priority = "explicit"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
