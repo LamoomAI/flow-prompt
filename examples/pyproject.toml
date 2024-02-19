@@ -7,8 +7,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-flow-prompt = {version = "^0.1.4a6", source = "test-pypi"}
 python-dotenv = "^1.0.1"
+flow-prompt = "^0.1.4"
 
 [[tool.poetry.source]]
 name = "test-pypi"

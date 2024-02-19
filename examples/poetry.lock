@@ -480,24 +480,19 @@ typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
 name = "flow-prompt"
-version = "0.1.4a9"
+version = "0.1.4"
 description = ""
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "flow_prompt-0.1.4a9-py3-none-any.whl", hash = "sha256:b15b31f4fb934082afb6570033ac928bcc3fc077c83f27b5125325883bf3370c"},
-    {file = "flow_prompt-0.1.4a9.tar.gz", hash = "sha256:8959fe002efba51d9ca0059e848b8617b97d98dac0a43124f714ae8e04dcc0eb"},
+    {file = "flow_prompt-0.1.4-py3-none-any.whl", hash = "sha256:288be66640958b81b6160e8a956d32df32571c4dc8faabb804eda4e47a24565d"},
+    {file = "flow_prompt-0.1.4.tar.gz", hash = "sha256:e27b7f4275ef882cf666432b6ca9461f1256adf680067ebac5b8a37400a34693"},
 ]
 
 [package.dependencies]
 openai = ">=1.9.0,<2.0.0"
 poetry = ">=1.7.1,<2.0.0"
 tiktoken = ">=0.5.2,<0.6.0"
-
-[package.source]
-type = "legacy"
-url = "https://test.pypi.org/simple"
-reference = "test-pypi"
 
 [[package]]
 name = "h11"
@@ -1554,4 +1549,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2b5379cf31c46cea86ae5e7d03e4617253b47bb222ba4aeb516ac28282e1f4bb"
+content-hash = "a05ad6b239dd4283283c5e7796b66e86f6ccb344cbd9f767a6d8ccfd82e3ea8c"
