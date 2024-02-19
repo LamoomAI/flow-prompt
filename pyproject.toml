@@ -2,7 +2,7 @@
 name = "flow-prompt"
 version = "0.1.4a9"
 description = ""
-authors = ["Kate Yanchenko <kate@lamoom.com>"]
+authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
