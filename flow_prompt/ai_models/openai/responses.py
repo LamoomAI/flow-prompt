@@ -55,7 +55,6 @@ class OpenAIResponse(AIResponse):
         return {
             "finish_reason": self.finish_reason,
             "message": self.message.model_dump_json(indent=2),
-            "content": self.content,
         }
 
     def get_message_str(self) -> str:
