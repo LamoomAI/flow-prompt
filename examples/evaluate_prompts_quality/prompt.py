@@ -7,9 +7,15 @@ prompt_to_evaluate_prompt.add(role="system", content="You're a prompt engineer, 
 
 prompt_to_evaluate_prompt.add(content="""The initial prompt is provided below: ```
 {prompt_data}
-```""")
+```""", priority=1)
 
-prompt_to_evaluate_prompt.add(content="{responses}", is_multiple=1, in_one_message=1, presentation="Responses to the initial prompt were as follows: ")
+prompt_to_evaluate_prompt.add(
+    content="{responses}", 
+    is_multiple=True, 
+    in_one_message=True,
+    presentation="Responses to the initial prompt were as follows: ", 
+    priority=2
+)
 
 prompt_to_evaluate_prompt.add(content='''
 Please perform the following steps:
@@ -23,4 +29,4 @@ Please perform the following steps:
 3. **Suggest Modifications:** 
   - Propose clear and actionable changes to the initial prompt that could potentially address the identified issues.
   - If applicable, recommend breaking down complex tasks into simpler, more manageable subtasks within the prompt.
-''')
+''', required=True)
