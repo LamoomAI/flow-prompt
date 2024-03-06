@@ -95,25 +95,25 @@ class FlowPrompt:
                     calling_messages.max_sample_budget,
                     **params,
                 )
+                sample_budget = self.calculate_budget_for_text(
+                        user_prompt, result.get_message_str()
+                    )
                 result.metrics.price_of_call = self.get_price(
                     current_attempt,
-                    self.calculate_budget_for_text(
-                        user_prompt, result.get_message_str()
-                    ),
+                    sample_budget,
                     calling_messages.prompt_budget,
                 )
+                result.metrics.sample_tokens_used = sample_budget
+                result.metrics.prompt_tokens_used = calling_messages.prompt_budget
+                result.metrics.ai_model_details = current_attempt.ai_model.get_metrics_data()
+                result.metrics.latency = current_timestamp_ms() - start_time
 
                 if settings.USE_API_SERVICE and self.api_token:
                     self.worker.add_task(
                         self.api_token,
                         pipe_prompt.service_dump(),
                         context,
-                        result,
-                        {
-                            "attempt_number": current_attempt.attempt_number,
-                            "price": result.metrics.price_of_call,
-                            "latency": current_timestamp_ms() - start_time,
-                        },
+                        result
                     )
                 return result
             except RetryableCustomException as e:
@@ -139,7 +139,7 @@ class FlowPrompt:
                     self.api_token, prompt_id, prompt_data, version
                 )
             except Exception as e:
-                logger.error(f"Error while getting prompt {prompt_id}: {e}")
+                logger.exception(f"Error while getting prompt {prompt_id}: {e}")
                 if prompt:
                     return prompt
                 else:

@@ -17,7 +17,7 @@ def get_all_prompts():
 
 def get_logs(prompt_id):
     response = requests.get(
-        f'{FLOW_PROMPT_URL}/ai_chronicles?prompt_id={prompt_id}&fields=response,context',
+        f'{FLOW_PROMPT_URL}/logs?prompt_id={prompt_id}&fields=response,context',
         headers={'Authorization': f'Bearer {BEARER_TOKEN}'}
     )
     logs = response.json()

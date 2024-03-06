@@ -80,3 +80,11 @@ class AzureAIModel(OpenAIModel):
 
     def get_client(self):
         return settings.AI_CLIENTS[self.provider][self.realm]
+    
+    def get_metrics_data(self):
+        return {
+            "realm": self.realm,
+            "deployment_name": self.deployment_name,
+            "family": self.family,
+            "provider": self.provider,
+        }

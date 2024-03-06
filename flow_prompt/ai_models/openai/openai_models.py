@@ -121,6 +121,13 @@ class OpenAIModel(AIModel):
             "model": self.model,
         }
 
+    def get_metrics_data(self):
+        return {
+            "model": self.model,
+            "family": self.family,
+            "provider": self.provider,
+        }
+
     def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
@@ -167,7 +174,13 @@ class OpenAIModel(AIModel):
                 message=result.choices[0].message,
                 content=result.choices[0].message.content,
                 original_result=result,
-                prompt=Prompt(messages=kwargs.get("messages")),
+                prompt=Prompt(
+                    messages=kwargs.get("messages"),
+                    functions=kwargs.get("tools"),
+                    max_tokens=max_tokens,
+                    temperature=kwargs.get("temperature"),
+                    top_p=kwargs.get("top_p"),
+                ),
             )
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)
