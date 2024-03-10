@@ -7,14 +7,13 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-flow-prompt = {version = "^0.1.4a6", source = "test-pypi"}
+flow-prompt = {version = "^0.1.4a11", source = "test"}
 python-dotenv = "^1.0.1"
 
 [[tool.poetry.source]]
-name = "test-pypi"
+name = "test"
 url = "https://test.pypi.org/simple/"
-priority = "explicit"
-
+secondary = true
 
 [build-system]
 requires = ["poetry-core"]

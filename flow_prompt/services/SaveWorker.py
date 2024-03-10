@@ -1,7 +1,8 @@
 import threading
 import queue
-import asyncio
+import typing as t
 from time import sleep
+from flow_prompt.responses import AIResponse
 
 from flow_prompt.services.flow_prompt import FlowPromptService
 
@@ -14,10 +15,10 @@ class SaveWorker:
         self.thread.start()
 
     def save_user_interaction_async(
-        self, api_token, prompt_data, context, response, metrics
+        self, api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse
     ):
         FlowPromptService.save_user_interaction(
-            api_token, prompt_data, context, response, metrics
+            api_token, prompt_data, context, response
         )
 
     def worker(self):
@@ -26,11 +27,11 @@ class SaveWorker:
             if task is None:
                 sleep(1)
                 continue
-            api_token, prompt_data, context, response, metrics = task
+            api_token, prompt_data, context, response = task
             self.save_user_interaction_async(
-                api_token, prompt_data, context, response, metrics
+                api_token, prompt_data, context, response
             )
             self.queue.task_done()
 
-    def add_task(self, api_token, prompt_data, context, response, metrics={}):
-        self.queue.put((api_token, prompt_data, context, response, metrics))
+    def add_task(self, api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse):
+        self.queue.put((api_token, prompt_data, context, response))

@@ -25,6 +25,7 @@ SAFE_GAP_PER_MSG: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_PER_MSG", 4)
 DEFAULT_ENCODING = "cl100k_base"
 
 USE_API_SERVICE = os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True)
+FLOW_PROMPT_API_URI = os.environ.get("FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/")
 
 CACHE_PROMPT_FOR_EACH_SECONDS = os.environ.get(
     "FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60

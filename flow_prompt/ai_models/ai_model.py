@@ -36,3 +36,6 @@ class AIModel:
 
     def call(self, *args, **kwargs) -> AIResponse:
         raise NotImplementedError
+
+    def get_metrics_data(self):
+        return {}

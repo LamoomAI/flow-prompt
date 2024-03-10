@@ -1,11 +1,12 @@
 import json
 import logging
 import typing as t
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import requests
 
 from flow_prompt import settings
 from flow_prompt.exceptions import NotFoundPromptException
+from flow_prompt.responses import AIResponse
 from flow_prompt.utils import DecimalEncoder, current_timestamp_ms
 
 logger = logging.getLogger(__name__)
@@ -15,12 +16,11 @@ logger = logging.getLogger(__name__)
 class FlowPromptServiceResponse:
     prompt_id: str = None
     actual_prompt: dict = None
-    hash_key: str = None
     prompt_is_actual: bool = False
 
 
 class FlowPromptService:
-    url: str = "https://api.flow-prompt.com/"
+    url: str = settings.FLOW_PROMPT_API_URI
     cached_prompts = {}
 
     def get_actual_prompt(
@@ -83,7 +83,6 @@ class FlowPromptService:
             return FlowPromptServiceResponse(
                 prompt_id=prompt_id,
                 actual_prompt=prompt_data,
-                hash_key=prompt_data["hash_key"],
                 prompt_is_actual=response_data["prompt_is_actual"],
             )
         else:
@@ -105,20 +104,18 @@ class FlowPromptService:
     @classmethod
     def save_user_interaction(
         cls,
-        api_token: str,
-        prompt_data: dict[str, t.Any],
-        context: dict[str, t.Any],
-        response: dict[str, t.Any],
-        metrics: dict[str, t.Any] = {},
+        api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse
     ):
-        url = f"{cls.url}lib/ai_chronicles"
+        url = f"{cls.url}lib/logs"
         headers = {"Authorization": f"Token {api_token}"}
         data = {
             "context": context,
             "prompt": prompt_data,
-            "response": response.to_dict(),
-            "metrics": metrics,
+            "response": response.get_message_str(),
+            "metrics": asdict(response.metrics),
+            "request": asdict(response.prompt),
         }
+        logger.debug(f"Request to {url} with data: {data}")
         json_data = json.dumps(data, cls=DecimalEncoder)
 
         response = requests.post(url, headers=headers, data=json_data)
