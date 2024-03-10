@@ -27,9 +27,9 @@ class SaveWorker:
             if task is None:
                 sleep(1)
                 continue
-            api_token, prompt_data, context, response, metrics = task
+            api_token, prompt_data, context, response = task
             self.save_user_interaction_async(
-                api_token, prompt_data, context, response, metrics
+                api_token, prompt_data, context, response
             )
             self.queue.task_done()
 

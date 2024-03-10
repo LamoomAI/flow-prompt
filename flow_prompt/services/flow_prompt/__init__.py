@@ -1,7 +1,7 @@
 import json
 import logging
 import typing as t
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import requests
 
 from flow_prompt import settings
@@ -112,9 +112,10 @@ class FlowPromptService:
             "context": context,
             "prompt": prompt_data,
             "response": response.get_message_str(),
-            "metrics": response.metrics.asdict(),
-            "request": response.prompt.asdict(),
+            "metrics": asdict(response.metrics),
+            "request": asdict(response.prompt),
         }
+        logger.debug(f"Request to {url} with data: {data}")
         json_data = json.dumps(data, cls=DecimalEncoder)
 
         response = requests.post(url, headers=headers, data=json_data)

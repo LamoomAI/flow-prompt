@@ -113,7 +113,7 @@ class FlowPrompt:
                         self.api_token,
                         pipe_prompt.service_dump(),
                         context,
-                        result
+                        result,
                     )
                 return result
             except RetryableCustomException as e:
@@ -138,6 +138,9 @@ class FlowPrompt:
                 response = self.service.get_actual_prompt(
                     self.api_token, prompt_id, prompt_data, version
                 )
+                if response.prompt_is_actual:
+                    return prompt
+                return PipePrompt.service_load(response.actual_prompt)
             except Exception as e:
                 logger.exception(f"Error while getting prompt {prompt_id}: {e}")
                 if prompt:
@@ -145,10 +148,7 @@ class FlowPrompt:
                 else:
                     logger.exception(f"Prompt {prompt_id} not found")
                     raise FlowPromptIsnotFoundException()
-            if response.prompt_is_actual:
-                return prompt
-            else:
-                return PipePrompt.service_load(response.actual_prompt)
+                
         else:
             return settings.PIPE_PROMPTS[prompt_id]
 

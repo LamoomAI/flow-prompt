@@ -125,7 +125,7 @@ class OpenAIModel(AIModel):
         return {
             "model": self.model,
             "family": self.family,
-            "provider": self.provider,
+            "provider": self.provider.value,
         }
 
     def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:

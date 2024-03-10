@@ -86,5 +86,5 @@ class AzureAIModel(OpenAIModel):
             "realm": self.realm,
             "deployment_name": self.deployment_name,
             "family": self.family,
-            "provider": self.provider,
+            "provider": self.provider.value,
         }
