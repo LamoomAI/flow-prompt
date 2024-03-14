@@ -45,7 +45,7 @@ class OpenAIResponse(AIResponse):
         try:
             return json.loads(arguments)
         except json.JSONDecodeError as e:
-            logger.info("Failed to parse function arguments", exc_info=e)
+            logger.debug("Failed to parse function arguments", exc_info=e)
             return {}
 
     def is_reached_limit(self) -> bool:

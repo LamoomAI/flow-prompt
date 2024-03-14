@@ -28,6 +28,12 @@ class FamilyModel(Enum):
     instruct_gpt = "InstructGPT"
 
 
+DEFAULT_PRICING = {
+    "price_per_prompt_1k_tokens": Decimal(0.01),
+    "price_per_sample_1k_tokens": Decimal(0.03),
+}
+
+
 OPEN_AI_PRICING = {
     FamilyModel.chat.value: {
         C_4K: {
@@ -92,7 +98,7 @@ class OpenAIModel(AIModel):
             self.family = FamilyModel.gpt4.value
         if self.should_verify_client_has_creds:
             self.verify_client_has_creds()
-        logger.info(f"Initialized OpenAIModel: {self}")
+        logger.debug(f"Initialized OpenAIModel: {self}")
 
     def verify_client_has_creds(self):
         if self.provider not in settings.AI_CLIENTS:
@@ -106,13 +112,13 @@ class OpenAIModel(AIModel):
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
-        return OPEN_AI_PRICING[self.family][self.max_tokens][
+        return OPEN_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
             "price_per_prompt_1k_tokens"
         ]
 
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
-        return OPEN_AI_PRICING[self.family][self.max_tokens][
+        return OPEN_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
             "price_per_sample_1k_tokens"
         ]
 

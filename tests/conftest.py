@@ -1,5 +1,7 @@
 
 import pytest
+import dotenv
+dotenv.load_dotenv(dotenv.find_dotenv())
 
 from flow_prompt.ai_models import behaviour
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall

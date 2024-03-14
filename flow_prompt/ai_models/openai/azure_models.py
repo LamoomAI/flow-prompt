@@ -61,7 +61,7 @@ class AzureAIModel(OpenAIModel):
                 self.family = FamilyModel.gpt4.value
         if self.should_verify_client_has_creds:
             self.verify_client_has_creds()
-        logger.info(f"Initialized AzureAIModel: {self}")
+        logger.debug(f"Initialized AzureAIModel: {self}")
 
     def verify_client_has_creds(self):
         if self.realm not in settings.AI_CLIENTS[self.provider]:

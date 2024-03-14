@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from openai import AzureOpenAI, OpenAI
 
-from flow_prompt import secrets, settings
+from flow_prompt import Secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
@@ -29,27 +29,32 @@ class FlowPrompt:
     openai_api_key: str = None
     openai_org: str = None
     azure_keys: t.Dict[str, str] = None
+    secrets: Secrets = None
 
     def __post_init__(self):
-        if not self.azure_keys and secrets.AZURE_OPENAI_KEYS:
-            logger.info(f"Using Azure keys from secrets")
-            self.azure_keys = secrets.AZURE_OPENAI_KEYS
-        if not self.api_token and secrets.API_TOKEN:
-            logger.info(f"Using API token from secrets")
-            self.api_token = secrets.API_TOKEN
-        if not self.openai_api_key and secrets.OPENAI_API_KEY:
-            logger.info(f"Using OpenAI API key from secrets")
-            self.openai_api_key = secrets.OPENAI_API_KEY
-        if not self.openai_org and secrets.OPENAI_ORG:
-            logger.info(f"Using OpenAI organization from secrets")
-            self.openai_org = secrets.OPENAI_ORG
+        self.secrets = Secrets()
+        if not self.azure_keys:
+            if self.secrets.AZURE_OPENAI_KEYS:
+                logger.debug(f"Using Azure keys from secrets")
+                self.azure_keys = self.secrets.AZURE_OPENAI_KEYS
+            else:
+                logger.debug(f"Azure keys not found in secrets")
+        if not self.api_token and self.secrets.API_TOKEN:
+            logger.debug(f"Using API token from secrets")
+            self.api_token = self.secrets.API_TOKEN
+        if not self.openai_api_key and self.secrets.OPENAI_API_KEY:
+            logger.debug(f"Using OpenAI API key from secrets")
+            self.openai_api_key = self.secrets.OPENAI_API_KEY
+        if not self.openai_org and self.secrets.OPENAI_ORG:
+            logger.debug(f"Using OpenAI organization from secrets")
+            self.openai_org = self.secrets.OPENAI_ORG
         self.service = FlowPromptService()
         if self.openai_api_key:
             openai_client = OpenAI(
                 organization=self.openai_org,
                 api_key=self.openai_api_key,
             )
-            logger.info(f"Initialized OpenAI client: {openai_client}")
+            logger.debug(f"Initialized OpenAI client: {openai_client}")
             settings.AI_CLIENTS[AI_MODELS_PROVIDER.OPENAI] = openai_client
         if self.azure_keys:
             settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE] = {}
@@ -63,7 +68,7 @@ class FlowPrompt:
                     azure_endpoint=key_data["url"],
                     api_key=key_data["key"],
                 )
-                logger.info(f"Initialized Azure client for {realm} {key_data['url']}")
+                logger.debug(f"Initialized Azure client for {realm} {key_data['url']}")
         self.worker = SaveWorker()
 
     def call(
@@ -78,15 +83,14 @@ class FlowPrompt:
         """
         Call flow prompt with context and behaviour
         """
+
+        logger.debug(f"Calling {prompt_id}")
         start_time = current_timestamp_ms()
         pipe_prompt = self.get_pipe_prompt(prompt_id, version)
         prompt_attempts = PromptAttempts(behaviour, count_of_retries=count_of_retries)
 
         while prompt_attempts.initialize_attempt():
             current_attempt = prompt_attempts.current_attempt
-            logger.info(
-                f"Calling {prompt_id}. Attempt {prompt_attempts.current_attempt}"
-            )
             user_prompt = pipe_prompt.create_prompt(current_attempt)
             calling_messages = user_prompt.resolve(context)
             try:
@@ -117,7 +121,10 @@ class FlowPrompt:
                     )
                 return result
             except RetryableCustomException as e:
-                logger.warning(f"Retryable error: {e}")
+                logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")
+            except Exception as e:
+                logger.exception(f"Attempt failed: {prompt_attempts.current_attempt} with non-retryable error: {e}")
+                raise e
 
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
@@ -129,6 +136,7 @@ class FlowPrompt:
         add a new record in storage, and adding that it's the latest published prompt; -> return 200
         update redis with latest record;
         """
+        logger.debug(f"Getting pipe prompt {prompt_id}")
         if settings.USE_API_SERVICE and self.api_token:
             prompt_data = None
             prompt = settings.PIPE_PROMPTS.get(prompt_id)
@@ -138,9 +146,11 @@ class FlowPrompt:
                 response = self.service.get_actual_prompt(
                     self.api_token, prompt_id, prompt_data, version
                 )
-                if response.prompt_is_actual:
+                if not response.is_taken_globally:
+                    prompt.version = response.version
                     return prompt
-                return PipePrompt.service_load(response.actual_prompt)
+                response.prompt['version'] = response.version
+                return PipePrompt.service_load(response.prompt)
             except Exception as e:
                 logger.exception(f"Error while getting prompt {prompt_id}: {e}")
                 if prompt:

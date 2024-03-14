@@ -22,12 +22,7 @@ pip install flow-prompt
 To add OPENAI_KEYs, you can do that by any of that instructions:
 - add `OPENAI_API_KEY` as environment variable
 - ```FlowPrompt(openai_api_key={key}, openai_org={org})```
-- using as global variable:
-```
-import flow_prompt
-flow_prompt.secrets.OPENAI_API_KEY = None
-flow_prompt.secrets.OPENAI_ORG = None
-```
+
 
 ### Azure Keys
 Because Azure has several realms, and on each independent rate limits (not mentiniong credits), people do deploy on several realms the model. To add Azure keys please use:
@@ -36,21 +31,13 @@ Because Azure has several realms, and on each independent rate limits (not menti
     - `AZURE_OPENAI_ENDPOINT`
 - using FlowPrompt
 ```FlowPrompt(azure_openai_keys={"name_of_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}})```
-- using global variable:
-```
-import flow_prompt
-flow_prompt.secrets.AZURE_KEYS = {"uswest":{"url": "https://baseurl.azure.com/", "key": "secret"}}
-```
+
 
 ### FlowPrompt Keys
 To receive dynamic changes of the prompt, to record LLM interactions, metrics and other features by FlowPrompt, you need to get from https://flow-prompt.com API_TOKEN. To add it, please chose what best works for you:
 - as env variable `FLOW_PROMPT_API_TOKEN` as env variable
 - ```FlowPrompt(api_token={api_token})```
-- using as global variable:
-```
-import flow_prompt
-flow_prompt.secrets.API_TOKEN = None
-```
+
 ## Usage examples:
 
 1. You can easily create prompt on http://www.flow-prompt.com or in the code:

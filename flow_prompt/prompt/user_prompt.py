@@ -158,7 +158,7 @@ class UserPrompt(BasePrompt):
         messages_budget = 0
         is_fully_fitted = True
         if not values:
-            logger.info(
+            logger.debug(
                 f"[{self.task_name}]: values to add is empty {chat_value.content}"
             )
         for i, value in enumerate(values):
@@ -168,7 +168,7 @@ class UserPrompt(BasePrompt):
 
             if not self.is_enough_budget(state, one_budget + messages_budget):
                 is_fully_fitted = False
-                logger.info(
+                logger.debug(
                     f"not enough budget:{chat_value.content[:30]} with index {i},"
                     " for while_fits, breaking the loop"
                 )
@@ -202,7 +202,7 @@ class UserPrompt(BasePrompt):
         one_message = None
         is_fully_fitted = True
         if not values:
-            logger.info(
+            logger.debug(
                 f"[{self.task_name}]: values to add is empty {chat_value.content}"
             )
 
@@ -212,7 +212,7 @@ class UserPrompt(BasePrompt):
             one_budget = self.calculate_budget_for_value(value)
             if not self.is_enough_budget(state, one_budget + one_message_budget):
                 is_fully_fitted = False
-                logger.info(
+                logger.debug(
                     f"not enough budget:\n{chat_value.content[:30]} with index {i},"
                     f" for while_fits, breaking the loop."
                     f" Budget required: {one_budget}, "
@@ -266,7 +266,7 @@ class UserPrompt(BasePrompt):
 
         for value in values:
             if not self.is_value_not_empty(value):
-                logger.info(f"[{self.task_name}]: is_value_not_empty failed {value}")
+                logger.debug(f"[{self.task_name}]: is_value_not_empty failed {value}")
                 continue
             budget += self.calculate_budget_for_value(value)
             result.append(value)

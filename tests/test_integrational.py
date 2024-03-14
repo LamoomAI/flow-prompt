@@ -1,13 +1,25 @@
+
+
+
+import logging
+import os
 from time import sleep
+import time
 from uuid import uuid4
-import flow_prompt
+
+from pytest import fixture
 from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, C_128K
-import dotenv
+logger = logging.getLogger(__name__)
 
-dotenv.load_dotenv(dotenv.find_dotenv())
-flow_prompt=FlowPrompt()
 
-gpt4_behaviour = behaviour.AIModelsBehaviour(
+@fixture
+def flow_prompt():
+    flow_prompt = FlowPrompt()
+    return flow_prompt
+
+@fixture
+def gpt4_behaviour(flow_prompt: FlowPrompt):
+    return behaviour.AIModelsBehaviour(
         attempts=[
             AttemptToCall(
                 ai_model=AzureAIModel(
@@ -23,7 +35,7 @@ gpt4_behaviour = behaviour.AIModelsBehaviour(
     )
 
 
-def _test_loading_prompt_from_service():
+def test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     context = {
         'messages': ['test1', 'test2'],
         'assistant_response_in_progress': None,
@@ -33,7 +45,7 @@ def _test_loading_prompt_from_service():
     }
 
     # initial version of the prompt
-    prompt_id = f'test-{uuid4().hex[:4]}'
+    prompt_id = f'test-{time.time()}'
     flow_prompt.service.clear_cache()
     prompt = PipePrompt(id=prompt_id) 
     prompt.add("It's a system message, Hello {name}", role="system")
