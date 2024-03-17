@@ -18,6 +18,8 @@ class AIModel:
     tiktoken_encoding: t.Optional[str] = "cl100k_base"
     provider: AI_MODELS_PROVIDER = None
     support_functions: bool = False
+    _price_per_prompt_1k_tokens: Decimal = None
+    _price_per_sample_1k_tokens: Decimal = None
 
     @property
     def name(self) -> str:
@@ -25,11 +27,11 @@ class AIModel:
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
-        raise NotImplementedError
+        return self._price_per_prompt_1k_tokens
 
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
-        raise NotImplementedError
+        return self._price_per_sample_1k_tokens
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {}

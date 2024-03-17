@@ -2,6 +2,7 @@ import threading
 import queue
 import typing as t
 from time import sleep
+from flow_prompt.prompt.user_prompt import CallingMessages
 from flow_prompt.responses import AIResponse
 
 from flow_prompt.services.flow_prompt import FlowPromptService

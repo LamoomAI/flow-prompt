@@ -2,6 +2,7 @@ import json
 import logging
 import typing as t
 from dataclasses import asdict, dataclass
+from flow_prompt.prompt.user_prompt import CallingMessages
 import requests
 
 from flow_prompt import settings
@@ -119,7 +120,7 @@ class FlowPromptService:
         data = {
             "context": context,
             "prompt": prompt_data,
-            "response": response.get_message_str(),
+            "response": response.response,
             "metrics": asdict(response.metrics),
             "request": asdict(response.prompt),
         }
