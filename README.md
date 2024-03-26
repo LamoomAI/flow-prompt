@@ -30,7 +30,7 @@ Because Azure has several realms, and on each independent rate limits (not menti
     - `AZURE_OPENAI_API_KEY`
     - `AZURE_OPENAI_ENDPOINT`
 - using FlowPrompt
-```FlowPrompt(azure_openai_keys={"name_of_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}})```
+```FlowPrompt(azure_keys={"name_of_realm":{"url": "https://baseurl.azure.com/", "key": "secret"}})```
 
 
 ### FlowPrompt Keys
@@ -104,7 +104,7 @@ flow_behaviour = behaviour.AIModelsBehaviour(
 3. Finally, call AI Model, with flow_prompt:
 ```
 flow = FlowPrompt(
-    azure_openai_keys={
+    azure_keys={
         "name_realm":{
             "url": "https://baseurl.azure.com/",
             "key": "secret"

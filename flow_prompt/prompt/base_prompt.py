@@ -16,6 +16,14 @@ class BasePrompt:
     chats: t.List[ChatsEntity] = field(default_factory=list)
     pipe: t.List[str] = field(default_factory=list)
     functions: t.List[dict] = None
+    top_p: float = 0.0
+    temperature: float = 0.0
+
+    def get_params(self):
+        return {
+            "top_p": self.top_p,
+            "temperature": self.temperature,
+        }
 
     def add(
         self,

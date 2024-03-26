@@ -120,7 +120,7 @@ class FlowPromptService:
         data = {
             "context": context,
             "prompt": prompt_data,
-            "response": response.response,
+            "response": {"content": response.content},
             "metrics": asdict(response.metrics),
             "request": asdict(response.prompt),
         }

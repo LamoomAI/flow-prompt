@@ -1,17 +1,17 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.8a0"
+version = "0.1.8"
 description = ""
 authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-tiktoken = "^0.5.2"
-openai = "^1.9.0"
-poetry = "^1.7.1"
+tiktoken = ">=0.5.2"
+openai = ">=1.9.0"
 
 [tool.poetry.dev-dependencies]
+poetry = "^1.7.1"
 isort = "^5.13.2"
 flake8 = "^7.0.0"
 pytest = "^7.1.2"
