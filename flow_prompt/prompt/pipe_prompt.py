@@ -19,7 +19,6 @@ class PipePrompt(BasePrompt):
     You can add chats with different priorities to the pipe thinking just about the order of chats.
     When you initialize a Prompt, chats will be sorted by priority and then by order of adding.
     """
-
     id: str = None
     max_tokens: int = None
     min_sample_tokens: int = settings.DEFAULT_SAMPLE_MIN_BUDGET

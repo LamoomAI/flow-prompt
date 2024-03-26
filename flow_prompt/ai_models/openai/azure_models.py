@@ -2,8 +2,6 @@ import logging
 import typing as t
 from dataclasses import dataclass
 
-from openai import AzureOpenAI
-
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.openai.openai_models import FamilyModel, OpenAIModel

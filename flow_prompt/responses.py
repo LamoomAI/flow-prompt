@@ -9,20 +9,20 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Prompt:
-    messages: t.List[dict] = None
-    functions: t.List[dict] = None
+    messages: dict = None
+    functions: dict = None
     max_tokens: int = 0
-    temperature: float = 0
-    top_p: float = 0
+    temperature: Decimal = Decimal(0.0)
+    top_p: Decimal = Decimal(0.0)
 
 
 @dataclass
 class Metrics:
-    price_of_call: t.Optional[Decimal] = None
-    sample_tokens_used: t.Optional[int] = None
-    prompt_tokens_used: t.Optional[int] = None
-    ai_model_details: t.Optional[dict] = None
-    latency: t.Optional[int] = None
+    price_of_call: Decimal = None
+    sample_tokens_used: int = None
+    prompt_tokens_used: int = None
+    ai_model_details: dict = None
+    latency: int = None
 
 
 @dataclass(kw_only=True)

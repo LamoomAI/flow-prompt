@@ -34,9 +34,9 @@ class FlowPrompt:
     def __post_init__(self):
         self.secrets = Secrets()
         if not self.azure_keys:
-            if self.secrets.AZURE_OPENAI_KEYS:
+            if self.secrets.azure_keys:
                 logger.debug(f"Using Azure keys from secrets")
-                self.azure_keys = self.secrets.AZURE_OPENAI_KEYS
+                self.azure_keys = self.secrets.azure_keys
             else:
                 logger.debug(f"Azure keys not found in secrets")
         if not self.api_token and self.secrets.API_TOKEN:

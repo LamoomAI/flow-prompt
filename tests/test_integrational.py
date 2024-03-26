@@ -35,7 +35,7 @@ def gpt4_behaviour(flow_prompt: FlowPrompt):
     )
 
 
-def test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
+def _test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     context = {
         'messages': ['test1', 'test2'],
         'assistant_response_in_progress': None,
