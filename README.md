@@ -73,7 +73,7 @@ For production environments, it is recommended to store secrets securely and not
 We welcome contributions! Please see our Contribution Guidelines for more information on how to get involved.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache2.0 License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## Contact
 For support or contributions, please contact us via GitHub Issues.
