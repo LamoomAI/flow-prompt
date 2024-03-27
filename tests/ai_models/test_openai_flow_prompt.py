@@ -16,7 +16,7 @@ def test_flow_prompt(mock_openai, flow_prompt, chat_completion_openai: ChatCompl
     # Mock the model_dump() method
     mock_create.return_value = chat_completion_openai
 
-    flow_prompt = FlowPrompt(openai_api_key="123")
+    flow_prompt = FlowPrompt(openai_key="123")
     context = {
         "names": [
             "A Fax Machine",

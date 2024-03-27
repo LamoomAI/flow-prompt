@@ -25,7 +25,7 @@ pip install flow-prompt
 # setting as os.env
 os.setenv('OPENAI_API_KEY', 'your_key_here')
 # or creating flow_prompt obj
-FlowPrompt(openai_api_key="your_key", openai_org="your_org")
+FlowPrompt(openai_key="your_key", openai_org="your_org")
 ```
 
 ### Azure Keys
@@ -86,7 +86,7 @@ flow_behaviour = behaviour.AIModelsBehaviour(
 from flow_prompt import FlowPrompt, PipePrompt
 
 # Initialize and configure FlowPrompt
-flow = FlowPrompt(api_key='your_api_key', org='your_org')
+flow = FlowPrompt(openai_key='your_api_key', openai_org='your_org')
 
 # Create a prompt
 prompt = PipePrompt('greet_user')
