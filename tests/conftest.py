@@ -21,7 +21,7 @@ def set_log_level():
 @pytest.fixture
 def flow_prompt():
     return FlowPrompt(
-        openai_api_key="123",
+        openai_key="123",
         azure_keys={"us-east-1": {"url": "https://us-east-1.api.azure.openai.org", "key": "123"}}
     )
 
