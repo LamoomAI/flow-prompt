@@ -14,7 +14,7 @@ gpt4_behaviour = behaviour.AIModelsBehaviour(
         AttemptToCall(
             ai_model=AzureAIModel(
                 realm='westus',
-                deployment_name="gpt-4-turbo",
+                deployment_id="gpt-4-turbo",
                 max_tokens=C_128K,
                 support_functions=True,
             ),

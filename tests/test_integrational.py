@@ -1,11 +1,11 @@
 
 
 
+import json
 import logging
 import os
 from time import sleep
 import time
-from uuid import uuid4
 
 from pytest import fixture
 from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, C_128K
@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 @fixture
 def flow_prompt():
-    flow_prompt = FlowPrompt()
+    azure_keys = json.loads(os.getenv("AZURE_KEYS", "{}"))
+    flow_prompt = FlowPrompt(azure_keys=azure_keys)
     return flow_prompt
 
 @fixture
@@ -24,7 +25,7 @@ def gpt4_behaviour(flow_prompt: FlowPrompt):
             AttemptToCall(
                 ai_model=AzureAIModel(
                     realm='westus',
-                    deployment_name="gpt-4-turbo",
+                    deployment_id="gpt-4-turbo",
                     max_tokens=C_128K,
                     support_functions=True,
                     should_verify_client_has_creds=False,
@@ -35,7 +36,7 @@ def gpt4_behaviour(flow_prompt: FlowPrompt):
     )
 
 
-def _test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
+def test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     context = {
         'messages': ['test1', 'test2'],
         'assistant_response_in_progress': None,

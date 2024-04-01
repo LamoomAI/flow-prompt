@@ -79,6 +79,9 @@ class FlowPrompt:
         params: t.Dict[str, t.Any] = {},
         version: str = None,
         count_of_retries: int = None,
+        stream_function: t.Callable = None,
+        check_connection: t.Callable = None,
+        stream_params: dict = {},
     ) -> AIResponse:
         """
         Call flow prompt with context and behaviour
@@ -97,6 +100,9 @@ class FlowPrompt:
                 result = current_attempt.ai_model.call(
                     calling_messages.get_messages(),
                     calling_messages.max_sample_budget,
+                    stream_function = stream_function,
+                    check_connection = check_connection,
+                    stream_params = stream_params,
                     **params,
                 )
                 sample_budget = self.calculate_budget_for_text(

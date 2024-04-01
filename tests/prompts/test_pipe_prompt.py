@@ -14,7 +14,7 @@ def azure_ai_attempt():
     return AttemptToCall(
         ai_model=AzureAIModel(
             realm='us-east-1',
-            deployment_name="gpt-4-1106-preview",
+            deployment_id="gpt-4-1106-preview",
             max_tokens=C_128K,
             support_functions=True,
             should_verify_client_has_creds=False,
