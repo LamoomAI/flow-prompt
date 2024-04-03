@@ -187,7 +187,7 @@ class OpenAIModel(AIModel):
             result = client.chat.completions.create(
                 **kwargs,
             )
-            print(kwargs.get('stream'))
+
             if kwargs.get('stream'):
                 return OpenAIStreamResponse(
                     stream_function=stream_function,
@@ -246,3 +246,5 @@ class OpenAIStreamResponse(OpenAIResponse):
             content=content,
             role="assistant",
         )
+        
+        return self

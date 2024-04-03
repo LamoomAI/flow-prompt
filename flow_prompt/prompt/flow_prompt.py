@@ -105,6 +105,7 @@ class FlowPrompt:
                     stream_params = stream_params,
                     **params,
                 )
+                
                 sample_budget = self.calculate_budget_for_text(
                         user_prompt, result.get_message_str()
                     )
@@ -125,6 +126,7 @@ class FlowPrompt:
                         context,
                         result,
                     )
+                
                 return result
             except RetryableCustomException as e:
                 logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")

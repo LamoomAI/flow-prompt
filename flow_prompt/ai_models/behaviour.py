@@ -60,4 +60,4 @@ class PromptAttempts:
         )
 
     def __str__(self) -> str:
-        return f"Current attempt {self.current_attempt} from {len(self.attempts)}"
+        return f"Current attempt {self.current_attempt} from {len(self.ai_models_behaviour.attempts)}"
