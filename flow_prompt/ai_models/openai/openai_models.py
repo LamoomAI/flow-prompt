@@ -8,6 +8,8 @@ from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 from flow_prompt.exceptions import ProviderNotFoundException
+
+from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 
 from .utils import raise_openai_exception
@@ -134,12 +136,20 @@ class OpenAIModel(AIModel):
             "provider": self.provider.value,
         }
 
-    def call(self, messages, max_tokens, **kwargs) -> OpenAIResponse:
+    def call(self, messages, max_tokens,
+        stream_function: t.Callable = None,
+        check_connection: t.Callable = None,
+        stream_params: dict = {},
+        **kwargs) -> OpenAIResponse:
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
         if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
-            return self.call_chat_completion(messages, max_tokens, **kwargs)
+            return self.call_chat_completion(messages, max_tokens,
+                stream_function=stream_function,
+                check_connection=check_connection,
+                stream_params=stream_params,
+                **kwargs)
         raise NotImplementedError(f"Openai family {self.family} is not implemented")
 
     def get_client(self):
@@ -150,6 +160,9 @@ class OpenAIModel(AIModel):
         messages: t.List[t.Dict[str, str]],
         max_tokens: t.Optional[int],
         functions: t.List[t.Dict[str, str]] = [],
+        stream_function: t.Callable = None,
+        check_connection: t.Callable = None,
+        stream_params: dict = {},
         **kwargs,
     ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
@@ -174,6 +187,21 @@ class OpenAIModel(AIModel):
             result = client.chat.completions.create(
                 **kwargs,
             )
+
+            if kwargs.get('stream'):
+                return OpenAIStreamResponse(
+                    stream_function=stream_function,
+                    check_connection= check_connection,
+                    stream_params=stream_params,
+                    original_result=result,
+                    prompt=Prompt(
+                        messages=kwargs.get("messages"),
+                        functions=kwargs.get("tools"),
+                        max_tokens=max_tokens,
+                        temperature=kwargs.get("temperature"),
+                        top_p=kwargs.get("top_p"),
+                    ),
+                ).stream()
             logger.debug(f"Result: {result.choices[0]}")
             return OpenAIResponse(
                 finish_reason=result.choices[0].finish_reason,
@@ -191,3 +219,32 @@ class OpenAIModel(AIModel):
         except Exception as e:
             logger.exception("[OPENAI] failed to handle chat stream", exc_info=e)
             raise_openai_exception(e)
+
+@dataclass(kw_only=True)
+class OpenAIStreamResponse(OpenAIResponse):
+    stream_function: t.Callable
+    check_connection: t.Callable
+    stream_params: dict
+
+    def process_message(self, text: str, idx: int):
+        if idx % 5 == 0:
+            self.check_connection(**self.stream_params)
+        if not text:
+            return
+        self.stream_function(text, **self.stream_params)
+
+    def stream(self):
+        content = ''
+        for i, data in enumerate(self.original_result):
+            if not data.choices:
+                continue
+            choice = data.choices[0]
+            if choice.delta:
+                content += choice.delta.content or ''
+                self.process_message(choice.delta.content, i)
+        self.message = Message(
+            content=content,
+            role="assistant",
+        )
+        
+        return self

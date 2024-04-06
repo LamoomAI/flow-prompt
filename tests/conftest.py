@@ -21,7 +21,7 @@ def set_log_level():
 @pytest.fixture
 def flow_prompt():
     return FlowPrompt(
-        openai_api_key="123",
+        openai_key="123",
         azure_keys={"us-east-1": {"url": "https://us-east-1.api.azure.openai.org", "key": "123"}}
     )
 
@@ -48,7 +48,7 @@ def azure_gpt_4_behaviour():
             AttemptToCall(
                 ai_model=AzureAIModel(
                     realm='us-east-1',
-                    deployment_name="gpt-4-1106-preview",
+                    deployment_id="gpt-4-1106-preview",
                     max_tokens=C_128K,
                     support_functions=True,
                     should_verify_client_has_creds=False,
@@ -66,7 +66,7 @@ def gpt_4_behaviour():
             AttemptToCall(
                 ai_model=AzureAIModel(
                     realm='us-east-1',
-                    deployment_name='gpt-4-turbo',
+                    deployment_id='gpt-4-turbo',
                     max_tokens=C_128K,
                     should_verify_client_has_creds=False,
                 ),
@@ -85,7 +85,7 @@ def gpt_4_behaviour():
         fallback_attempt=AttemptToCall(
             ai_model=AzureAIModel(
                 realm="us-east-1",
-                deployment_name="gpt-4-32k",
+                deployment_id="gpt-4-32k",
                 max_tokens=C_32K,
                 support_functions=True,
                 should_verify_client_has_creds=False,

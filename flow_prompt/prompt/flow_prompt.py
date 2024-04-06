@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FlowPrompt:
     api_token: str = None
-    openai_api_key: str = None
+    openai_key: str = None
     openai_org: str = None
     azure_keys: t.Dict[str, str] = None
     secrets: Secrets = None
@@ -42,17 +42,17 @@ class FlowPrompt:
         if not self.api_token and self.secrets.API_TOKEN:
             logger.debug(f"Using API token from secrets")
             self.api_token = self.secrets.API_TOKEN
-        if not self.openai_api_key and self.secrets.OPENAI_API_KEY:
+        if not self.openai_key and self.secrets.OPENAI_API_KEY:
             logger.debug(f"Using OpenAI API key from secrets")
-            self.openai_api_key = self.secrets.OPENAI_API_KEY
+            self.openai_key = self.secrets.OPENAI_API_KEY
         if not self.openai_org and self.secrets.OPENAI_ORG:
             logger.debug(f"Using OpenAI organization from secrets")
             self.openai_org = self.secrets.OPENAI_ORG
         self.service = FlowPromptService()
-        if self.openai_api_key:
+        if self.openai_key:
             openai_client = OpenAI(
                 organization=self.openai_org,
-                api_key=self.openai_api_key,
+                api_key=self.openai_key,
             )
             logger.debug(f"Initialized OpenAI client: {openai_client}")
             settings.AI_CLIENTS[AI_MODELS_PROVIDER.OPENAI] = openai_client
@@ -79,6 +79,9 @@ class FlowPrompt:
         params: t.Dict[str, t.Any] = {},
         version: str = None,
         count_of_retries: int = None,
+        stream_function: t.Callable = None,
+        check_connection: t.Callable = None,
+        stream_params: dict = {},
     ) -> AIResponse:
         """
         Call flow prompt with context and behaviour
@@ -97,8 +100,12 @@ class FlowPrompt:
                 result = current_attempt.ai_model.call(
                     calling_messages.get_messages(),
                     calling_messages.max_sample_budget,
+                    stream_function = stream_function,
+                    check_connection = check_connection,
+                    stream_params = stream_params,
                     **params,
                 )
+                
                 sample_budget = self.calculate_budget_for_text(
                         user_prompt, result.get_message_str()
                     )
@@ -119,6 +126,7 @@ class FlowPrompt:
                         context,
                         result,
                     )
+                
                 return result
             except RetryableCustomException as e:
                 logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")

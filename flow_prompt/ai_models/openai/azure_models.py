@@ -13,23 +13,23 @@ logger = logging.getLogger(__name__)
 @dataclass(kw_only=True)
 class AzureAIModel(OpenAIModel):
     realm: t.Optional[str]
-    deployment_name: t.Optional[str]
+    deployment_id: t.Optional[str]
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.AZURE
     model: t.Optional[str] = None
 
     def __str__(self) -> str:
-        return f"{self.realm}-{self.deployment_name}-{self.family}"
+        return f"{self.realm}-{self.deployment_id}-{self.family}"
 
     def _define_family(self):
-        if self.deployment_name.startswith("davinci"):
+        if self.deployment_id.startswith("davinci"):
             self.family = FamilyModel.instruct_gpt.value
-        elif self.deployment_name.startswith(("gpt3", "gpt-3")):
+        elif self.deployment_id.startswith(("gpt3", "gpt-3")):
             self.family = FamilyModel.chat.value
-        elif self.deployment_name.startswith(("gpt4", "gpt-4", "gpt")):
+        elif self.deployment_id.startswith(("gpt4", "gpt-4", "gpt")):
             self.family = FamilyModel.gpt4.value
         else:
             logger.warning(
-                f"Unknown family for {self.deployment_name}. Please add it obviously. Setting as GPT4"
+                f"Unknown family for {self.deployment_id}. Please add it obviously. Setting as GPT4"
             )
             self.family = FamilyModel.gpt4.value
 
@@ -40,21 +40,21 @@ class AzureAIModel(OpenAIModel):
             self.tiktoken_encoding = ""
         else:
             logger.warning(
-                f"Unknown realm for {self.deployment_name}. Please add it obviously. Setting as cl100k_base"
+                f"Unknown realm for {self.deployment_id}. Please add it obviously. Setting as cl100k_base"
             )
             self.tiktoken_encoding = "cl100k_base"
 
     def __post_init__(self):
         if not self.family:
-            if self.deployment_name.startswith("davinci"):
+            if self.deployment_id.startswith("davinci"):
                 self.family = FamilyModel.instruct_gpt.value
-            elif self.deployment_name.startswith(("gpt3", "gpt-3")):
+            elif self.deployment_id.startswith(("gpt3", "gpt-3")):
                 self.family = FamilyModel.chat.value
-            elif self.deployment_name.startswith(("gpt4", "gpt-4", "gpt")):
+            elif self.deployment_id.startswith(("gpt4", "gpt-4", "gpt")):
                 self.family = FamilyModel.gpt4.value
             else:
                 logger.warning(
-                    f"Unknown family for {self.deployment_name}. Please add it obviously. Setting as GPT4"
+                    f"Unknown family for {self.deployment_id}. Please add it obviously. Setting as GPT4"
                 )
                 self.family = FamilyModel.gpt4.value
         if self.should_verify_client_has_creds:
@@ -69,11 +69,11 @@ class AzureAIModel(OpenAIModel):
 
     @property
     def name(self) -> str:
-        return f"{self.deployment_name}-{self.realm}"
+        return f"{self.deployment_id}-{self.realm}"
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            "model": self.deployment_name,
+            "model": self.deployment_id,
         }
 
     def get_client(self):
@@ -82,7 +82,7 @@ class AzureAIModel(OpenAIModel):
     def get_metrics_data(self):
         return {
             "realm": self.realm,
-            "deployment_name": self.deployment_name,
+            "deployment_id": self.deployment_id,
             "family": self.family,
             "provider": self.provider.value,
         }
