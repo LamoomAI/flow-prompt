@@ -40,3 +40,6 @@ class OpenAIInvalidRequestError(FlowPromptException):
 
 class OpenAIBadRequestException(FlowPromptException):
     pass
+
+class ConnectionCheckError(FlowPromptException):
+    pass
