@@ -51,7 +51,7 @@ def raise_openai_exception(
         raise OpenAIBadRequestException()
     
     if isinstance(exc, ConnectionError):
-        raise ConnectionCheckError()
+        raise ConnectionCheckError("websocket connection was lost")
 
     logger.error(
         "Unknown OPENAI error, please add it in raise_openai_rate_limit_exception",
