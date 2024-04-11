@@ -10,7 +10,6 @@ from flow_prompt.ai_models.openai.behaviours import (
     OPENAI_GPT4_BEHAVIOUR,
     OPENAI_GPT4_32K_BEHAVIOUR,
     OPENAI_GPT3_5_TURBO_0125_BEHAVIOUR,
-    OPENAI_GPT3_5_TURBO_INSTRUCT_BEHAVIOUR,
 )
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.openai.openai_models import (
