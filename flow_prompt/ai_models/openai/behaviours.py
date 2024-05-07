@@ -92,17 +92,3 @@ OPENAI_GPT3_5_TURBO_0125_BEHAVIOUR = AIModelsBehaviour(
         ),
     ]
 )
-
-OPENAI_GPT3_5_TURBO_INSTRUCT_BEHAVIOUR = AIModelsBehaviour(
-    attempts=[
-        AttemptToCall(
-            ai_model=OpenAIModel(
-                model="gpt-3.5-turbo-instruct",
-                max_tokens=C_4K,
-                support_functions=True,
-                should_verify_client_has_creds=False,
-            ),
-            weight=100,
-        ),
-    ]
-)
