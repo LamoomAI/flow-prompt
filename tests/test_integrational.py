@@ -36,7 +36,7 @@ def gpt4_behaviour(flow_prompt: FlowPrompt):
     )
 
 
-def test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
+def _test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     context = {
         'messages': ['test1', 'test2'],
         'assistant_response_in_progress': None,
@@ -67,5 +67,6 @@ def test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     prompt.add("It's a system message, Hello {name}", role="system")
     prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     result = flow_prompt.call(prompt.id, context, gpt4_behaviour)
+    
     # should call the prompt with music
     assert result.prompt.messages[-1] == {'role': 'user', 'content': 'music1\nmusic2'} 

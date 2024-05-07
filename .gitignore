@@ -7,3 +7,5 @@ dist
 .venv
 .coverage
 .DS_Store
+.vscode
+.pytest_cache

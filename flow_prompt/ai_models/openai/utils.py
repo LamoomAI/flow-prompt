@@ -14,6 +14,7 @@ from flow_prompt.ai_models.openai.exceptions import (
     OpenAIResponseWasFilteredError,
     OpenAITimeoutException,
     OpenAIUnknownException,
+    ConnectionCheckError
 )
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,9 @@ def raise_openai_exception(
 
     if isinstance(exc, openai.APIStatusError):
         raise OpenAIBadRequestException()
+    
+    if isinstance(exc, ConnectionError):
+        raise ConnectionCheckError("websocket connection was lost")
 
     logger.error(
         "Unknown OPENAI error, please add it in raise_openai_rate_limit_exception",

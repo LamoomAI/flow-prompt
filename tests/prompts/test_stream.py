@@ -1,6 +1,3 @@
-
-
-
 import json
 import logging
 import os
@@ -38,8 +35,8 @@ def gpt4_behaviour():
 def stream_function(text, **kwargs):
     print(text)
 
-def stream_check_connection(**kwargs):
-    return True
+def stream_check_connection(validate, **kwargs):
+    return validate
 
 def _test_loading_prompt_from_service(fp, gpt4_behaviour):
 
@@ -57,4 +54,4 @@ def _test_loading_prompt_from_service(fp, gpt4_behaviour):
     prompt = PipePrompt(id=prompt_id) 
     prompt.add("It's a system message, Hello {name}", role="system")
     prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
-    fp.call(prompt.id, context, gpt4_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={})
+    fp.call(prompt.id, context, gpt4_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": False})

@@ -228,7 +228,8 @@ class OpenAIStreamResponse(OpenAIResponse):
 
     def process_message(self, text: str, idx: int):
         if idx % 5 == 0:
-            self.check_connection(**self.stream_params)
+            if not self.check_connection(**self.stream_params):
+                raise ConnectionError    
         if not text:
             return
         self.stream_function(text, **self.stream_params)
