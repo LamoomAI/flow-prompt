@@ -10,6 +10,8 @@ from flow_prompt.responses import AIResponse
 class AI_MODELS_PROVIDER(Enum):
     OPENAI = "openai"
     AZURE = "azure"
+    CLAUDE = "claude",
+    GEMINI = "gemini"
 
 
 @dataclass(kw_only=True)

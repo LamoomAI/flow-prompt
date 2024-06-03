@@ -5,7 +5,7 @@ from time import sleep
 import time
 
 from pytest import fixture
-from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, C_128K
+from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, ClaudeAIModel, GeminiAIModel, C_128K
 logger = logging.getLogger(__name__)
 
 
@@ -14,6 +14,7 @@ def fp():
     azure_keys = json.loads(os.getenv("AZURE_KEYS", "{}"))
     flow_prompt = FlowPrompt(azure_keys=azure_keys)
     return flow_prompt
+
 
 @fixture
 def gpt4_behaviour():
@@ -31,6 +32,21 @@ def gpt4_behaviour():
             ),
         ]
     )
+    
+
+@fixture
+def claude_behaviour():
+    return behaviour.AIModelsBehaviour(
+        attempts=[
+            AttemptToCall(
+                ai_model=ClaudeAIModel(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=4096                
+                ),
+                weight=100,
+            ),
+        ]
+    )
 
 def stream_function(text, **kwargs):
     print(text)
@@ -38,7 +54,7 @@ def stream_function(text, **kwargs):
 def stream_check_connection(validate, **kwargs):
     return validate
 
-def _test_loading_prompt_from_service(fp, gpt4_behaviour):
+def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour):
 
     context = {
         'messages': ['test1', 'test2'],
@@ -46,12 +62,15 @@ def _test_loading_prompt_from_service(fp, gpt4_behaviour):
         'files': ['file1', 'file2'],
         'music': ['music1', 'music2'],
         'videos': ['video1', 'video2'],
+        'text': "Good morning. Tell me a funny joke!"
     }
 
     # initial version of the prompt
     prompt_id = f'test-{time.time()}'
     fp.service.clear_cache()
     prompt = PipePrompt(id=prompt_id) 
-    prompt.add("It's a system message, Hello {name}", role="system")
-    prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
-    fp.call(prompt.id, context, gpt4_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": False})
+    # prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
+    prompt.add("{text}")
+    prompt.add("It's a system message, Hello {name}", role="assistant")
+    fp.call(prompt.id, context, claude_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": False}, stream_params={"validate": True, "end": "", "flush": True})
+    
