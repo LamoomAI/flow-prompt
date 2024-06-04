@@ -33,14 +33,28 @@ def gpt4_behaviour():
         ]
     )
     
-
-@fixture
+   
+@fixture 
 def claude_behaviour():
     return behaviour.AIModelsBehaviour(
         attempts=[
             AttemptToCall(
                 ai_model=ClaudeAIModel(
                     model="claude-3-haiku-20240307",
+                    max_tokens=4096                
+                ),
+                weight=100,
+            ),
+        ]
+    )
+    
+@fixture
+def gemini_behaviour():
+    return behaviour.AIModelsBehaviour(
+        attempts=[
+            AttemptToCall(
+                ai_model=GeminiAIModel(
+                    model_name="gemini-1.5-flash",
                     max_tokens=4096                
                 ),
                 weight=100,
@@ -54,7 +68,7 @@ def stream_function(text, **kwargs):
 def stream_check_connection(validate, **kwargs):
     return validate
 
-def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour):
+def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
 
     context = {
         'messages': ['test1', 'test2'],
@@ -72,5 +86,5 @@ def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour):
     # prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
-    fp.call(prompt.id, context, claude_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": False}, stream_params={"validate": True, "end": "", "flush": True})
+    fp.call(prompt.id, context, gemini_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     

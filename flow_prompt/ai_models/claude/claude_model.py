@@ -27,26 +27,26 @@ class FamilyModel(Enum):
     opus = "Claude 3 Opus"
 
 DEFAULT_PRICING = {
-    "price_per_prompt_1k_tokens": Decimal(0.01),
-    "price_per_sample_1k_tokens": Decimal(0.03),
+    "price_per_prompt_1k_tokens": Decimal(0.00025),
+    "price_per_sample_1k_tokens": Decimal(0.00125),
 }
 
 CLAUDE_AI_PRICING = {
     FamilyModel.haiku.value: {
         C_200K: {
-            "price_per_prompt_1k_tokens": Decimal(0.00125),
+            "price_per_prompt_1k_tokens": Decimal(0.00025),
             "price_per_sample_1k_tokens": Decimal(0.00125),
         }
     },
     FamilyModel.sonnet.value: {
         C_200K: {
-            "price_per_prompt_1k_tokens": Decimal(0.015),
+            "price_per_prompt_1k_tokens": Decimal(0.003),
             "price_per_sample_1k_tokens": Decimal(0.015),
         }
     },
     FamilyModel.opus.value: {
         C_200K: {
-            "price_per_prompt_1k_tokens": Decimal(0.075),
+            "price_per_prompt_1k_tokens": Decimal(0.015),
             "price_per_sample_1k_tokens": Decimal(0.075),
         }
     },
@@ -96,7 +96,6 @@ class ClaudeAIModel(AIModel):
             **kwargs,
         }
         
-        # Implement the logic to call Claude AI API here
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
