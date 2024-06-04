@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 import json
 import os
 
+from flow_prompt.utils import parse_bool
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP_SCRIPTS_DIR = os.environ.get(
@@ -24,11 +26,11 @@ SAFE_GAP_TOKENS: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_TOKENS", 100)
 SAFE_GAP_PER_MSG: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_PER_MSG", 4)
 DEFAULT_ENCODING = "cl100k_base"
 
-USE_API_SERVICE = os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True)
+USE_API_SERVICE = parse_bool(os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True))
 FLOW_PROMPT_API_URI = os.environ.get("FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/")
 
 CACHE_PROMPT_FOR_EACH_SECONDS = int(os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60))  # 5 minutes by default
-RECEIVE_PROMPT_FROM_SERVER = os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True)
+RECEIVE_PROMPT_FROM_SERVER = parse_bool(os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True))
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
 

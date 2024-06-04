@@ -7,6 +7,12 @@ from time import time
 logger = logging.getLogger(__name__)
 
 
+def parse_bool(value: any) -> bool:
+    if type(value) == bool:
+        return value
+    return str(value).lower() in ("true", "1", "yes")
+
+
 def current_timestamp_ms():
     return int(time() * 1000)
 
