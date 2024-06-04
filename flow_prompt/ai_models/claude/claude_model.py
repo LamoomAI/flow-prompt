@@ -1,6 +1,5 @@
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 import logging
-import os
 
 from flow_prompt.responses import AIResponse
 from decimal import Decimal
@@ -131,7 +130,7 @@ class ClaudeAIModel(AIModel):
                     messages=messages
                 )
                 content = response.content[0].text
-                print(content)
+                stream_function(content, **stream_params)
             
             
             return ClaudeAIReponse(
