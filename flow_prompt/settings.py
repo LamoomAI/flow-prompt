@@ -27,9 +27,8 @@ DEFAULT_ENCODING = "cl100k_base"
 USE_API_SERVICE = os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True)
 FLOW_PROMPT_API_URI = os.environ.get("FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/")
 
-CACHE_PROMPT_FOR_EACH_SECONDS = os.environ.get(
-    "FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60
-)  # 5 minutes by default
+CACHE_PROMPT_FOR_EACH_SECONDS = int(os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60))  # 5 minutes by default
+RECEIVE_PROMPT_FROM_SERVER = os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True)
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
 
