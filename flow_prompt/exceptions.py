@@ -13,6 +13,9 @@ class FlowPromptIsnotFoundException(FlowPromptException):
 class BehaviourIsNotDefined(FlowPromptException):
     pass
 
+class ConnectionLostException(FlowPromptException):
+    pass
+
 
 class ValueIsNotResolvedException(FlowPromptException):
     pass

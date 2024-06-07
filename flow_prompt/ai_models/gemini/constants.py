@@ -1,0 +1,2 @@
+FLASH = 'flash'
+PRO = 'pro'

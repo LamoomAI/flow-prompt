@@ -9,10 +9,12 @@ import typing as t
 from dataclasses import dataclass
 
 from flow_prompt.ai_models.claude.responses import ClaudeAIReponse
+from flow_prompt.ai_models.claude.constants import *
+
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
-from flow_prompt.exceptions import RetryableCustomException
+from flow_prompt.exceptions import RetryableCustomException, ConnectionLostException
 import anthropic 
 
 logger = logging.getLogger(__name__)
@@ -61,17 +63,17 @@ class ClaudeAIModel(AIModel):
     family: str = None
     
     def __post_init__(self):
-        if 'haiku' in self.model:
+        if HAIKU in self.model:
             self.family = FamilyModel.haiku.value
-        elif 'sonnet' in self.model:
+        elif SONNET in self.model:
             self.family = FamilyModel.sonnet.value
-        elif 'opus' in self.model:
+        elif OPUS in self.model:
             self.family = FamilyModel.opus.value
         else:
             logger.warning(
-                f"Unknown family for {self.model}. Please add it obviously. Setting as Claude 3 Haiku"
+                f"Unknown family for {self.model}. Please add it obviously. Setting as Claude 3 Opus"
             )
-            self.family = FamilyModel.haiku.value
+            self.family = FamilyModel.opus.value
 
         logger.debug(f"Initialized ClaudeAIModel: {self}")
         
@@ -117,7 +119,7 @@ class ClaudeAIModel(AIModel):
                     for text in stream.text_stream:
                         if idx % 5 == 0:
                             if not check_connection(**stream_params):
-                                raise ConnectionError  
+                                raise ConnectionLostException("Connection was lost!")  
                         
                         stream_function(text, **stream_params)
                         content += text

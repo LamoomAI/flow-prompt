@@ -7,7 +7,7 @@ from enum import Enum
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
-from flow_prompt.exceptions import ProviderNotFoundException
+from flow_prompt.exceptions import ProviderNotFoundException, ConnectionLostException
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
@@ -153,7 +153,7 @@ class OpenAIModel(AIModel):
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
-        if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
+        if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value, FamilyModel.gpt4o.value]:
             return self.call_chat_completion(messages, max_tokens,
                 stream_function=stream_function,
                 check_connection=check_connection,
@@ -238,7 +238,7 @@ class OpenAIStreamResponse(OpenAIResponse):
     def process_message(self, text: str, idx: int):
         if idx % 5 == 0:
             if not self.check_connection(**self.stream_params):
-                raise ConnectionError    
+                raise ConnectionLostException("Connection was lost!")    
         if not text:
             return
         self.stream_function(text, **self.stream_params)
