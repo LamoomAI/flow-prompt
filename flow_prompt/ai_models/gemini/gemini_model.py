@@ -51,7 +51,7 @@ GEMINI_AI_PRICING = {
 class GeminiAIModel(AIModel):
     model_name: str
     model: genai.GenerativeModel = None
-    api_key: str = ""
+    api_key: str = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.GEMINI
     family: str = None
     
@@ -70,7 +70,8 @@ class GeminiAIModel(AIModel):
         
         secrets = Secrets()
         
-        self.api_key = secrets.GEMINI_API_KEY
+        if self.api_key is None:
+            self.api_key = secrets.GEMINI_API_KEY
         
         genai.configure(api_key=self.api_key)
         

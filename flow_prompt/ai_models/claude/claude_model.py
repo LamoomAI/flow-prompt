@@ -58,7 +58,7 @@ CLAUDE_AI_PRICING = {
 @dataclass(kw_only=True)
 class ClaudeAIModel(AIModel):
     model: str
-    api_key: str = ""
+    api_key: str = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.CLAUDE
     family: str = None
     
@@ -78,7 +78,9 @@ class ClaudeAIModel(AIModel):
         logger.debug(f"Initialized ClaudeAIModel: {self}")
         
         secrets = Secrets()
-        self.api_key = secrets.CLAUDE_API_KEY
+        
+        if self.api_key is None:
+            self.api_key = secrets.CLAUDE_API_KEY
         
 
     def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:

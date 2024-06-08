@@ -28,6 +28,8 @@ class FlowPrompt:
     api_token: str = None
     openai_key: str = None
     openai_org: str = None
+    claude_key: str = None
+    gemini_key: str = None
     azure_keys: t.Dict[str, str] = None
     secrets: Secrets = None
 
