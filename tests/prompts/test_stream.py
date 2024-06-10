@@ -69,7 +69,7 @@ def stream_function(text, **kwargs):
 def stream_check_connection(validate, **kwargs):
     return validate
 
-def _test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
+def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
 
     context = {
         'messages': ['test1', 'test2'],
