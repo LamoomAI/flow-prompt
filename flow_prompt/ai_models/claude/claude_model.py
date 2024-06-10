@@ -9,12 +9,13 @@ import typing as t
 from dataclasses import dataclass
 
 from flow_prompt.ai_models.claude.responses import ClaudeAIReponse
-from flow_prompt.ai_models.claude.constants import *
+from flow_prompt.ai_models.claude.constants import HAIKU, SONNET, OPUS
+from flow_prompt.ai_models.utils import get_common_args
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
-from flow_prompt.exceptions import RetryableCustomException, ConnectionLostException
+from flow_prompt.exceptions import RetryableCustomException, ConnectionLostError
 import anthropic 
 
 logger = logging.getLogger(__name__)
@@ -85,12 +86,7 @@ class ClaudeAIModel(AIModel):
 
     def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
         
-        common_args = {
-            "top_p": 1,
-            "temperature": 0,
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
+        common_args = get_common_args(max_tokens)
         kwargs = {
             **{
                 "messages": messages,
@@ -121,7 +117,7 @@ class ClaudeAIModel(AIModel):
                     for text in stream.text_stream:
                         if idx % 5 == 0:
                             if not check_connection(**stream_params):
-                                raise ConnectionLostException("Connection was lost!")  
+                                raise ConnectionLostError("Connection was lost!")  
                         
                         stream_function(text, **stream_params)
                         content += text

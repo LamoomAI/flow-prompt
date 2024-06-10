@@ -9,11 +9,12 @@ import typing as t
 from dataclasses import dataclass
 
 from flow_prompt.ai_models.gemini.responses import GeminiAIResponse
-from flow_prompt.ai_models.gemini.constants import *
+from flow_prompt.ai_models.gemini.constants import FLASH, PRO
+from flow_prompt.ai_models.utils import get_common_args
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
-from flow_prompt.exceptions import RetryableCustomException, ConnectionLostException
+from flow_prompt.exceptions import RetryableCustomException, ConnectionLostError
 import google.generativeai as genai 
 
 logger = logging.getLogger(__name__)
@@ -80,12 +81,7 @@ class GeminiAIModel(AIModel):
 
     def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
         
-        common_args = {
-            "top_p": 1,
-            "temperature": 0,
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
+        common_args = get_common_args(max_tokens)
         kwargs = {
             **{
                 "messages": messages,
@@ -119,7 +115,7 @@ class GeminiAIModel(AIModel):
                 for prompt in prompts:
                     if idx % 5 == 0:
                         if not check_connection(**stream_params):
-                            raise ConnectionLostException("Connection was lost!")  
+                            raise ConnectionLostError("Connection was lost!")  
                     response = self.model.generate_content(prompt, stream=True)
                     for chunk in response:
                         stream_function(chunk.text, **stream_params)

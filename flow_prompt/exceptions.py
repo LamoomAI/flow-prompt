@@ -13,7 +13,7 @@ class FlowPromptIsnotFoundException(FlowPromptException):
 class BehaviourIsNotDefined(FlowPromptException):
     pass
 
-class ConnectionLostException(FlowPromptException):
+class ConnectionLostError(FlowPromptException):
     pass
 
 

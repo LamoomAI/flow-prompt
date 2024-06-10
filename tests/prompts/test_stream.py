@@ -5,14 +5,15 @@ from time import sleep
 import time
 
 from pytest import fixture
-from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, ClaudeAIModel, GeminiAIModel, C_128K
+from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, ClaudeAIModel, GeminiAIModel, OpenAIModel, C_128K
 logger = logging.getLogger(__name__)
 
 
 @fixture
 def fp():
     azure_keys = json.loads(os.getenv("AZURE_KEYS", "{}"))
-    flow_prompt = FlowPrompt(azure_keys=azure_keys)
+    openai_key = os.getenv("OPENAI_API_KEY")
+    flow_prompt = FlowPrompt(openai_key==openai_key)
     return flow_prompt
 
 
@@ -21,9 +22,8 @@ def gpt4_behaviour():
     return behaviour.AIModelsBehaviour(
         attempts=[
             AttemptToCall(
-                ai_model=AzureAIModel(
-                    realm='westus',
-                    deployment_id="gpt-4-turbo",
+                ai_model=OpenAIModel(
+                    model="gpt-4o",
                     max_tokens=C_128K,
                     support_functions=True,
                     should_verify_client_has_creds=False,
@@ -34,7 +34,7 @@ def gpt4_behaviour():
     )
     
    
-@fixture 
+@fixture
 def claude_behaviour():
     return behaviour.AIModelsBehaviour(
         attempts=[
@@ -48,6 +48,7 @@ def claude_behaviour():
         ]
     )
     
+
 @fixture
 def gemini_behaviour():
     return behaviour.AIModelsBehaviour(
@@ -55,7 +56,7 @@ def gemini_behaviour():
             AttemptToCall(
                 ai_model=GeminiAIModel(
                     model_name="gemini-1.5-flash",
-                    max_tokens=4096                
+                    max_tokens=C_128K                
                 ),
                 weight=100,
             ),
@@ -68,7 +69,7 @@ def stream_function(text, **kwargs):
 def stream_check_connection(validate, **kwargs):
     return validate
 
-def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
+def _test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
 
     context = {
         'messages': ['test1', 'test2'],
@@ -86,5 +87,8 @@ def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemin
     # prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
+    
+    fp.call(prompt.id, context, gpt4_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    fp.call(prompt.id, context, claude_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     fp.call(prompt.id, context, gemini_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     

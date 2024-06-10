@@ -7,7 +7,8 @@ from enum import Enum
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
-from flow_prompt.exceptions import ProviderNotFoundException, ConnectionLostException
+from flow_prompt.ai_models.utils import get_common_args
+from flow_prompt.exceptions import ProviderNotFoundException, ConnectionLostError
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
@@ -175,12 +176,7 @@ class OpenAIModel(AIModel):
         **kwargs,
     ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
-        common_args = {
-            "top_p": 1,
-            "temperature": 0,
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
+        common_args = get_common_args(max_tokens)
         kwargs = {
             **{
                 "messages": messages,
@@ -238,7 +234,7 @@ class OpenAIStreamResponse(OpenAIResponse):
     def process_message(self, text: str, idx: int):
         if idx % 5 == 0:
             if not self.check_connection(**self.stream_params):
-                raise ConnectionLostException("Connection was lost!")    
+                raise ConnectionLostError("Connection was lost!")    
         if not text:
             return
         self.stream_function(text, **self.stream_params)
