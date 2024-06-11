@@ -150,7 +150,7 @@ class FlowPrompt:
         update redis with latest record;
         """
         logger.debug(f"Getting pipe prompt {prompt_id}")
-        if settings.USE_API_SERVICE and self.api_token:
+        if settings.USE_API_SERVICE and self.api_token and settings.RECEIVE_PROMPT_FROM_SERVER:
             prompt_data = None
             prompt = settings.PIPE_PROMPTS.get(prompt_id)
             if prompt:
