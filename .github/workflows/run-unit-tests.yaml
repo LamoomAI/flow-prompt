@@ -13,10 +13,10 @@ jobs:
     - name: 'Create env file'
       run: |
         touch .env
-        echo AZURE_KEYS=${{ vars.AZURE_KEYS }} >> .env
-        echo CLAUDE_API_KEY=${{ vars.CLAUDE_API_KEY }} >> .env
-        echo GEMINI_API_KEY=${{ vars.GEMINI_API_KEY }} >> .env
-        echo OPENAI_API_KEY=${{ vars.OPENAI_API_KEY }} >> .env
+        echo AZURE_KEYS=${{ secrets.AZURE_KEYS }} >> .env
+        echo CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }} >> .env
+        echo GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} >> .env
+        echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
         cat .env
 
     - name: Install dependencies
