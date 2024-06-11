@@ -71,6 +71,9 @@ class FlowPrompt:
                     api_key=key_data["key"],
                 )
                 logger.debug(f"Initialized Azure client for {realm} {key_data['url']}")
+        
+        settings.AI_KEYS[AI_MODELS_PROVIDER.CLAUDE] = self.claude_key
+        settings.AI_KEYS[AI_MODELS_PROVIDER.GEMINI] = self.gemini_key
         self.worker = SaveWorker()
 
     def call(

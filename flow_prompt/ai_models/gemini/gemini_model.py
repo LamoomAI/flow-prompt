@@ -4,6 +4,7 @@ import logging
 from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
+from flow_prompt import settings
 
 import typing as t
 from dataclasses import dataclass
@@ -69,11 +70,7 @@ class GeminiAIModel(AIModel):
 
         logger.debug(f"Initialized GeminiAIModel: {self}")
         
-        secrets = Secrets()
-        
-        if self.api_key is None:
-            self.api_key = secrets.GEMINI_API_KEY
-        
+        self.api_key = settings.AI_KEYS[self.provider]
         genai.configure(api_key=self.api_key)
         
         self.model = genai.GenerativeModel(self.model_name)

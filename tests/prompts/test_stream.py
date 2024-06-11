@@ -13,7 +13,13 @@ logger = logging.getLogger(__name__)
 def fp():
     azure_keys = json.loads(os.getenv("AZURE_KEYS", "{}"))
     openai_key = os.getenv("OPENAI_API_KEY")
-    flow_prompt = FlowPrompt(openai_key==openai_key)
+    claude_key = os.getenv("CLAUDE_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    flow_prompt = FlowPrompt(
+        openai_key==openai_key,
+        azure_keys=azure_keys,
+        claude_key=claude_key,
+        gemini_key=gemini_key)
     return flow_prompt
 
 

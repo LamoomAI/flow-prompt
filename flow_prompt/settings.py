@@ -32,6 +32,7 @@ CACHE_PROMPT_FOR_EACH_SECONDS = os.environ.get(
 )  # 5 minutes by default
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
+AI_KEYS = {}
 
 
 @dataclass

@@ -5,6 +5,8 @@ from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
 
+from flow_prompt import settings
+
 import typing as t
 from dataclasses import dataclass
 
@@ -78,10 +80,7 @@ class ClaudeAIModel(AIModel):
 
         logger.debug(f"Initialized ClaudeAIModel: {self}")
         
-        secrets = Secrets()
-        
-        if self.api_key is None:
-            self.api_key = secrets.CLAUDE_API_KEY
+        self.api_key = settings.AI_KEYS[self.provider]
         
 
     def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
