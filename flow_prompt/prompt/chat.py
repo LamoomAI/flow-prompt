@@ -3,7 +3,7 @@ import typing as t
 import uuid
 from dataclasses import dataclass
 
-from flow_prompt.exceptions import ValueIsNotResolvedException
+from flow_prompt.exceptions import ValueIsNotResolvedError
 from flow_prompt.utils import resolve
 
 logger = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ class ChatsEntity:
             if not values:
                 return []
             if not isinstance(values, list):
-                raise ValueIsNotResolvedException(
+                raise ValueIsNotResolvedError(
                     f"Invalid value {values } for prompt {content}. Should be multiple"
                 )
             else:
@@ -95,7 +95,7 @@ class ChatsEntity:
                         for c in values
                     ]
                 except TypeError as e:
-                    raise ValueIsNotResolvedException(
+                    raise ValueIsNotResolvedError(
                         f"Invalid value { values } for prompt {content}. Error: {e}"
                     )
             return result

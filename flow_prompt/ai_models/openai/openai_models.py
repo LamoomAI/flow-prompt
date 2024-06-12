@@ -8,7 +8,7 @@ from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 from flow_prompt.ai_models.utils import get_common_args
-from flow_prompt.exceptions import ProviderNotFoundException, ConnectionLostError
+from flow_prompt.exceptions import ProviderNotFoundError, ConnectionLostError
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
@@ -114,7 +114,7 @@ class OpenAIModel(AIModel):
 
     def verify_client_has_creds(self):
         if self.provider not in settings.AI_CLIENTS:
-            raise ProviderNotFoundException(
+            raise ProviderNotFoundError(
                 f"Provider {self.provider} not found in AI_CLIENTS"
             )
 

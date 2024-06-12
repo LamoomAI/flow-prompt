@@ -10,8 +10,8 @@ from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
 from flow_prompt.exceptions import (
-    FlowPromptIsnotFoundException,
-    RetryableCustomException,
+    FlowPromptIsnotFoundError,
+    RetryableCustomError,
 )
 from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
@@ -133,7 +133,7 @@ class FlowPrompt:
                     )
                 
                 return result
-            except RetryableCustomException as e:
+            except RetryableCustomError as e:
                 logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")
             except Exception as e:
                 logger.exception(f"Attempt failed: {prompt_attempts.current_attempt} with non-retryable error: {e}")
@@ -170,7 +170,7 @@ class FlowPrompt:
                     return prompt
                 else:
                     logger.exception(f"Prompt {prompt_id} not found")
-                    raise FlowPromptIsnotFoundException()
+                    raise FlowPromptIsnotFoundError()
                 
         else:
             return settings.PIPE_PROMPTS[prompt_id]

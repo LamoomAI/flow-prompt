@@ -17,7 +17,7 @@ from flow_prompt.ai_models.utils import get_common_args
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
-from flow_prompt.exceptions import RetryableCustomException, ConnectionLostError
+from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import anthropic 
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ class ClaudeAIModel(AIModel):
             )
         except Exception as e:
             logger.exception("[CLAUDEAI] failed to handle chat stream", exc_info=e)
-            raise RetryableCustomException(f"Claude AI call failed!")
+            raise RetryableCustomError(f"Claude AI call failed!")
 
     def name(self) -> str:
         return self.model

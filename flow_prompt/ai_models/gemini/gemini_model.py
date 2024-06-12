@@ -15,7 +15,7 @@ from flow_prompt.ai_models.utils import get_common_args
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
-from flow_prompt.exceptions import RetryableCustomException, ConnectionLostError
+from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import google.generativeai as genai 
 
 logger = logging.getLogger(__name__)
@@ -136,7 +136,7 @@ class GeminiAIModel(AIModel):
             
         except Exception as e:
             logger.exception("[GEMINIAI] failed to handle chat stream", exc_info=e)
-            raise RetryableCustomException(f"Gemini AI call failed!")
+            raise RetryableCustomError(f"Gemini AI call failed!")
 
     def name(self) -> str:
         return self.model_name

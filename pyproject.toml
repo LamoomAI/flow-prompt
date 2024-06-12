@@ -23,6 +23,12 @@ autopep8 = "^2.0.4"
 python-dotenv = "^1.0.1"
 twine = "^5.0.0"
 
+[tool.poetry.extras]
+openai=["openai"]
+anthropic = ["anthropic"]
+gemini = ["google-generativeai"]
+all = ["openai", "anthropic", "google-generativeai"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
