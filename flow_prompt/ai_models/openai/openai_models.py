@@ -7,7 +7,8 @@ from enum import Enum
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
-from flow_prompt.exceptions import ProviderNotFoundException
+from flow_prompt.ai_models.utils import get_common_args
+from flow_prompt.exceptions import ProviderNotFoundError, ConnectionLostError
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
@@ -18,7 +19,7 @@ C_4K = 4096
 C_8K = 8192
 C_128K = 127_000
 C_16K = 16384
-C_32K = 32768
+C_32K = 32768       
 M_DAVINCI = "davinci"
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 class FamilyModel(Enum):
     chat = "GPT-3.5"
     gpt4 = "GPT-4"
+    gpt4o = "GPT-4o"
     instruct_gpt = "InstructGPT"
 
 
@@ -65,6 +67,12 @@ OPEN_AI_PRICING = {
             "price_per_sample_1k_tokens": Decimal(0.03),
         },
     },
+    FamilyModel.gpt4o.value: {
+        C_128K: {
+            "price_per_prompt_1k_tokens": Decimal(0.005),
+            "price_per_sample_1k_tokens": Decimal(0.015),
+        },
+    },
     FamilyModel.instruct_gpt.value: {
         M_DAVINCI: {
             "price_per_prompt_1k_tokens": Decimal(0.0015),
@@ -91,6 +99,8 @@ class OpenAIModel(AIModel):
             self.family = FamilyModel.instruct_gpt.value
         elif self.model.startswith("gpt-3"):
             self.family = FamilyModel.chat.value
+        elif self.model.startswith(("gpt-4o")):
+            self.family = FamilyModel.gpt4o.value
         elif self.model.startswith(("gpt-4", "gpt")):
             self.family = FamilyModel.gpt4.value
         else:
@@ -104,7 +114,7 @@ class OpenAIModel(AIModel):
 
     def verify_client_has_creds(self):
         if self.provider not in settings.AI_CLIENTS:
-            raise ProviderNotFoundException(
+            raise ProviderNotFoundError(
                 f"Provider {self.provider} not found in AI_CLIENTS"
             )
 
@@ -144,7 +154,7 @@ class OpenAIModel(AIModel):
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
-        if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value]:
+        if self.family in [FamilyModel.chat.value, FamilyModel.gpt4.value, FamilyModel.gpt4o.value]:
             return self.call_chat_completion(messages, max_tokens,
                 stream_function=stream_function,
                 check_connection=check_connection,
@@ -166,12 +176,7 @@ class OpenAIModel(AIModel):
         **kwargs,
     ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
-        common_args = {
-            "top_p": 1,
-            "temperature": 0,
-            "max_tokens": max_tokens,
-            "stream": False,
-        }
+        common_args = get_common_args(max_tokens)
         kwargs = {
             **{
                 "messages": messages,
@@ -229,7 +234,7 @@ class OpenAIStreamResponse(OpenAIResponse):
     def process_message(self, text: str, idx: int):
         if idx % 5 == 0:
             if not self.check_connection(**self.stream_params):
-                raise ConnectionError    
+                raise ConnectionLostError("Connection was lost!")    
         if not text:
             return
         self.stream_function(text, **self.stream_params)
@@ -247,5 +252,7 @@ class OpenAIStreamResponse(OpenAIResponse):
             content=content,
             role="assistant",
         )
+        
+        print(self.message)
         
         return self

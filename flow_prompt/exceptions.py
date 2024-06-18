@@ -1,30 +1,33 @@
-class FlowPromptException(Exception):
+class FlowPromptError(Exception):
     pass
 
 
-class RetryableCustomException(FlowPromptException):
+class RetryableCustomError(FlowPromptError):
     pass
 
 
-class FlowPromptIsnotFoundException(FlowPromptException):
+class FlowPromptIsnotFoundError(FlowPromptError):
     pass
 
 
-class BehaviourIsNotDefined(FlowPromptException):
+class BehaviourIsNotDefined(FlowPromptError):
+    pass
+
+class ConnectionLostError(FlowPromptError):
     pass
 
 
-class ValueIsNotResolvedException(FlowPromptException):
+class ValueIsNotResolvedError(FlowPromptError):
     pass
 
 
-class NotEnoughBudgetException(FlowPromptException):
+class NotEnoughBudgetError(FlowPromptError):
     pass
 
 
-class NotFoundPromptException(FlowPromptException):
+class NotFoundPromptError(FlowPromptError):
     pass
 
 
-class ProviderNotFoundException(FlowPromptException):
+class ProviderNotFoundError(FlowPromptError):
     pass

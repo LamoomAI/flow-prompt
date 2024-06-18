@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import tiktoken
 
 from flow_prompt import settings
-from flow_prompt.exceptions import NotEnoughBudgetException
+from flow_prompt.exceptions import NotEnoughBudgetError
 from flow_prompt.prompt.base_prompt import BasePrompt
 from flow_prompt.prompt.chat import ChatMessage, ChatsEntity
 
@@ -112,7 +112,7 @@ class UserPrompt(BasePrompt):
                 if not self.is_enough_budget(state, messages_budget):
                     logger.debug(f"not enough budget for {chat_value}")
                     if chat_value.required:
-                        raise NotEnoughBudgetException("Not enough budget")
+                        raise NotEnoughBudgetError("Not enough budget")
                     continue
                 logger.debug(f"adding {len(messages)} messages for {chat_value}")
                 state.left_budget -= messages_budget

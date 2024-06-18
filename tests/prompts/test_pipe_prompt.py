@@ -3,7 +3,7 @@
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.openai.azure_models import AzureAIModel
 from flow_prompt.ai_models.openai.openai_models import C_128K
-from flow_prompt.exceptions import NotEnoughBudgetException
+from flow_prompt.exceptions import NotEnoughBudgetError
 from flow_prompt.prompt.pipe_prompt import PipePrompt
 
 import pytest
@@ -67,7 +67,7 @@ def test_pipe_prompt_initialize_not_enough_budget(azure_ai_attempt:  AttemptToCa
     context = {}
     user_prompt.min_sample_tokens = 1299  # Not enough tokens for the message
     user_prompt.model_max_tokens = 1300  # Not enough tokens for the message
-    with pytest.raises(NotEnoughBudgetException):
+    with pytest.raises(NotEnoughBudgetError):
         user_prompt.resolve(context)
 
 

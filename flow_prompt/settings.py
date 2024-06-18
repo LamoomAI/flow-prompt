@@ -33,12 +33,15 @@ CACHE_PROMPT_FOR_EACH_SECONDS = int(os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR
 RECEIVE_PROMPT_FROM_SERVER = parse_bool(os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True))
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
+AI_KEYS = {}
 
 
 @dataclass
 class Secrets:
     API_TOKEN: str = field(default_factory=lambda: os.getenv("FLOW_PROMPT_API_TOKEN"))
     OPENAI_API_KEY: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
+    CLAUDE_API_KEY: str = field(default_factory=lambda: os.getenv("CLAUDE_API_KEY"))
+    GEMINI_API_KEY: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
     OPENAI_ORG: str = field(default_factory=lambda: os.getenv("OPENAI_ORG"))
     azure_keys: dict = field(default_factory=lambda: json.loads(os.getenv("azure_keys", "{}")))
 

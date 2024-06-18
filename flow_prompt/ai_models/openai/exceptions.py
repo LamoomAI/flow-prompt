@@ -1,45 +1,45 @@
-from flow_prompt.exceptions import FlowPromptException, RetryableCustomException
+from flow_prompt.exceptions import FlowPromptError, RetryableCustomError
 
 
-class OpenAIChunkedEncodingError(RetryableCustomException):
+class OpenAIChunkedEncodingError(RetryableCustomError):
     pass
 
 
-class OpenAITimeoutException(RetryableCustomException):
+class OpenAITimeoutError(RetryableCustomError):
     pass
 
 
-class OpenAIResponseWasFilteredError(RetryableCustomException):
+class OpenAIResponseWasFilteredError(RetryableCustomError):
     pass
 
 
-class OpenAIAuthenticationError(RetryableCustomException):
+class OpenAIAuthenticationError(RetryableCustomError):
     pass
 
 
-class OpenAIInternalException(RetryableCustomException):
+class OpenAIInternalError(RetryableCustomError):
     pass
 
 
-class OpenAiRateLimitException(RetryableCustomException):
+class OpenAiRateLimitError(RetryableCustomError):
     pass
 
 
-class OpenAiPermissionDeniedError(RetryableCustomException):
+class OpenAiPermissionDeniedError(RetryableCustomError):
     pass
 
 
-class OpenAIUnknownException(RetryableCustomException):
+class OpenAIUnknownError(RetryableCustomError):
     pass
 
 
-### Non-retryable exceptions ###
-class OpenAIInvalidRequestError(FlowPromptException):
+### Non-retryable Errors ###
+class OpenAIInvalidRequestError(FlowPromptError):
     pass
 
 
-class OpenAIBadRequestException(FlowPromptException):
+class OpenAIBadRequestError(FlowPromptError):
     pass
 
-class ConnectionCheckError(FlowPromptException):
+class ConnectionCheckError(FlowPromptError):
     pass

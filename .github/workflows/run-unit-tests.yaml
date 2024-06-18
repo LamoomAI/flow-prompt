@@ -10,6 +10,15 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
+    - name: 'Create env file'
+      run: |
+        touch .env
+        echo AZURE_KEYS=${{ secrets.AZURE_KEYS }} >> .env
+        echo CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }} >> .env
+        echo GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} >> .env
+        echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
+        cat .env
+
     - name: Install dependencies
       run: |
         apt-get update && apt-get install -y curl build-essential
@@ -24,7 +33,7 @@ jobs:
         cache: poetry
 
     - name: Install Python libraries
-      run: poetry install
+      run: poetry install -E all
 
     - name: Run tests with pytest
       run: |

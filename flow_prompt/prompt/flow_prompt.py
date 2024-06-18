@@ -10,8 +10,8 @@ from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
 from flow_prompt.exceptions import (
-    FlowPromptIsnotFoundException,
-    RetryableCustomException,
+    FlowPromptIsnotFoundError,
+    RetryableCustomError,
 )
 from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
@@ -28,6 +28,8 @@ class FlowPrompt:
     api_token: str = None
     openai_key: str = None
     openai_org: str = None
+    claude_key: str = None
+    gemini_key: str = None
     azure_keys: t.Dict[str, str] = None
     secrets: Secrets = None
 
@@ -69,6 +71,9 @@ class FlowPrompt:
                     api_key=key_data["key"],
                 )
                 logger.debug(f"Initialized Azure client for {realm} {key_data['url']}")
+        
+        settings.AI_KEYS[AI_MODELS_PROVIDER.CLAUDE] = self.claude_key
+        settings.AI_KEYS[AI_MODELS_PROVIDER.GEMINI] = self.gemini_key
         self.worker = SaveWorker()
 
     def call(
@@ -128,7 +133,7 @@ class FlowPrompt:
                     )
                 
                 return result
-            except RetryableCustomException as e:
+            except RetryableCustomError as e:
                 logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")
             except Exception as e:
                 logger.exception(f"Attempt failed: {prompt_attempts.current_attempt} with non-retryable error: {e}")
@@ -165,7 +170,7 @@ class FlowPrompt:
                     return prompt
                 else:
                     logger.exception(f"Prompt {prompt_id} not found")
-                    raise FlowPromptIsnotFoundException()
+                    raise FlowPromptIsnotFoundError()
                 
         else:
             return settings.PIPE_PROMPTS[prompt_id]

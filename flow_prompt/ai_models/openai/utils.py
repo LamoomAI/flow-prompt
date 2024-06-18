@@ -5,15 +5,15 @@ import openai
 
 from flow_prompt.ai_models.openai.exceptions import (
     OpenAIAuthenticationError,
-    OpenAIBadRequestException,
+    OpenAIBadRequestError,
     OpenAIChunkedEncodingError,
-    OpenAIInternalException,
+    OpenAIInternalError,
     OpenAIInvalidRequestError,
     OpenAiPermissionDeniedError,
-    OpenAiRateLimitException,
+    OpenAiRateLimitError,
     OpenAIResponseWasFilteredError,
-    OpenAITimeoutException,
-    OpenAIUnknownException,
+    OpenAITimeoutError,
+    OpenAIUnknownError,
     ConnectionCheckError
 )
 
@@ -27,28 +27,28 @@ def raise_openai_exception(
         raise OpenAIChunkedEncodingError()
 
     if isinstance(exc, openai.APITimeoutError):
-        raise OpenAITimeoutException()
+        raise OpenAITimeoutError()
 
     if isinstance(exc, openai.BadRequestError):
         if "response was filtered" in str(exc):
             raise OpenAIResponseWasFilteredError()
         if "Too many inputs" in str(exc):
-            raise OpenAiRateLimitException()
+            raise OpenAiRateLimitError()
         raise OpenAIInvalidRequestError()
     if isinstance(exc, openai.RateLimitError):
-        raise OpenAiRateLimitException()
+        raise OpenAiRateLimitError()
 
     if isinstance(exc, openai.AuthenticationError):
         raise OpenAIAuthenticationError()
 
     if isinstance(exc, openai.InternalServerError):
-        raise OpenAIInternalException()
+        raise OpenAIInternalError()
 
     if isinstance(exc, openai.PermissionDeniedError):
         raise OpenAiPermissionDeniedError()
 
     if isinstance(exc, openai.APIStatusError):
-        raise OpenAIBadRequestException()
+        raise OpenAIBadRequestError()
     
     if isinstance(exc, ConnectionError):
         raise ConnectionCheckError("websocket connection was lost")
@@ -57,4 +57,4 @@ def raise_openai_exception(
         "Unknown OPENAI error, please add it in raise_openai_rate_limit_exception",
         exc_info=exc,
     )
-    raise OpenAIUnknownException()
+    raise OpenAIUnknownError()

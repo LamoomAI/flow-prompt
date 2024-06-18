@@ -6,7 +6,7 @@ from flow_prompt.prompt.user_prompt import CallingMessages
 import requests
 
 from flow_prompt import settings
-from flow_prompt.exceptions import NotFoundPromptException
+from flow_prompt.exceptions import NotFoundPromptError
 from flow_prompt.responses import AIResponse
 from flow_prompt.utils import DecimalEncoder, current_timestamp_ms
 
@@ -95,7 +95,7 @@ class FlowPromptService:
             )
         else:
             logger.debug(f"Prompt {prompt_id} not found, in {current_timestamp_ms() - timestamp} ms")
-            raise NotFoundPromptException(response.json())
+            raise NotFoundPromptError(response.json())
 
     def get_cached_prompt(self, prompt_id: str) -> dict:
         cached_data = self.cached_prompts.get(prompt_id)
