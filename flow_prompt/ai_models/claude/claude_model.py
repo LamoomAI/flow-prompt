@@ -128,7 +128,6 @@ class ClaudeAIModel(AIModel):
                     messages=messages
                 )
                 content = response.content[0].text
-                stream_function(content, **stream_params)
             
             
             return ClaudeAIReponse(
