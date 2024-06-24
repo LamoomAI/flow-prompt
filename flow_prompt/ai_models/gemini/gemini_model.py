@@ -102,11 +102,10 @@ class GeminiAIModel(AIModel):
         content = ""
         
         try:
-            if kwargs.get('stream'):
+            if not kwargs.get('stream'):
                 for prompt in prompts:
                     response = self.model.generate_content(prompt, stream=False)
                     content = response.text
-                    stream_function(content, **stream_params)
             else:
                 idx = 0
                 for prompt in prompts:
