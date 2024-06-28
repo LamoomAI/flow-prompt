@@ -31,3 +31,7 @@ class NotFoundPromptError(FlowPromptError):
 
 class ProviderNotFoundError(FlowPromptError):
     pass
+
+
+class NotParsedResponseException(FlowPromptError):
+    pass
