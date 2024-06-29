@@ -9,6 +9,9 @@ readme = "README.md"
 python = "^3.9"
 tiktoken = ">=0.5.2"
 pyyaml = "^6.0.1"
+openai = ">=1.9.0"
+anthropic = "^0.28.0"
+google-generativeai = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 poetry = "^1.7.1"
