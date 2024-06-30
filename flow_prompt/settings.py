@@ -27,10 +27,16 @@ SAFE_GAP_PER_MSG: int = os.environ.get("FLOW_PROMPT_SAFE_GAP_PER_MSG", 4)
 DEFAULT_ENCODING = "cl100k_base"
 
 USE_API_SERVICE = parse_bool(os.environ.get("FLOW_PROMPT_USE_API_SERVICE", True))
-FLOW_PROMPT_API_URI = os.environ.get("FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/")
+FLOW_PROMPT_API_URI = os.environ.get(
+    "FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/"
+)
 
-CACHE_PROMPT_FOR_EACH_SECONDS = int(os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60))  # 5 minutes by default
-RECEIVE_PROMPT_FROM_SERVER = parse_bool(os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True))
+CACHE_PROMPT_FOR_EACH_SECONDS = int(
+    os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60)
+)  # 5 minutes by default
+RECEIVE_PROMPT_FROM_SERVER = parse_bool(
+    os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True)
+)
 PIPE_PROMPTS = {}
 AI_CLIENTS = {}
 AI_KEYS = {}
@@ -43,5 +49,6 @@ class Secrets:
     CLAUDE_API_KEY: str = field(default_factory=lambda: os.getenv("CLAUDE_API_KEY"))
     GEMINI_API_KEY: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
     OPENAI_ORG: str = field(default_factory=lambda: os.getenv("OPENAI_ORG"))
-    azure_keys: dict = field(default_factory=lambda: json.loads(os.getenv("azure_keys", "{}")))
-
+    azure_keys: dict = field(
+        default_factory=lambda: json.loads(os.getenv("azure_keys", "{}"))
+    )

@@ -24,12 +24,12 @@ def fp():
 
 
 @fixture
-def gpt4_behaviour():
+def openai_behaviour():
     return behaviour.AIModelsBehaviour(
         attempts=[
             AttemptToCall(
                 ai_model=OpenAIModel(
-                    model="gpt-4o",
+                    model="gpt-3.5-turbo",
                     max_tokens=C_128K,
                     support_functions=True,
                     should_verify_client_has_creds=False,
@@ -38,7 +38,23 @@ def gpt4_behaviour():
             ),
         ]
     )
-    
+
+@fixture
+def azure_behaviour():
+    return behaviour.AIModelsBehaviour(
+        attempts=[
+            AttemptToCall(
+                ai_model=AzureAIModel(
+                    realm='westus',
+                    deployment_id="gpt-4-turbo",
+                    max_tokens=C_128K,
+                    support_functions=True,
+                    should_verify_client_has_creds=False,
+                ),
+                weight=100,
+            ),
+        ]
+    )
    
 @fixture
 def claude_behaviour():
@@ -75,7 +91,7 @@ def stream_function(text, **kwargs):
 def stream_check_connection(validate, **kwargs):
     return validate
 
-def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemini_behaviour):
+def test_loading_prompt_from_service(fp, openai_behaviour, azure_behaviour, claude_behaviour, gemini_behaviour):
 
     context = {
         'messages': ['test1', 'test2'],
@@ -94,7 +110,8 @@ def test_loading_prompt_from_service(fp, gpt4_behaviour, claude_behaviour, gemin
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
     
-    fp.call(prompt.id, context, gpt4_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    fp.call(prompt.id, context, openai_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    fp.call(prompt.id, context, azure_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     fp.call(prompt.id, context, claude_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     fp.call(prompt.id, context, gemini_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     

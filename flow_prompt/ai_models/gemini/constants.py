@@ -1,2 +1,2 @@
-FLASH = 'flash'
-PRO = 'pro'
+FLASH = "flash"
+PRO = "pro"
