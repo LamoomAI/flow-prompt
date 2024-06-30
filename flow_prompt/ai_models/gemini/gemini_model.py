@@ -16,17 +16,18 @@ from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.settings import Secrets
 from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
-import google.generativeai as genai 
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
 
-
 C_128K = 127_000
+
 
 class FamilyModel(Enum):
     flash = "Gemini 1.5 Flash"
     pro = "Gemini 1.5 Pro"
+
 
 DEFAULT_PRICING = {
     "price_per_prompt_1k_tokens": Decimal(0.00035),
@@ -45,7 +46,7 @@ GEMINI_AI_PRICING = {
             "price_per_prompt_1k_tokens": Decimal(0.0035),
             "price_per_sample_1k_tokens": Decimal(0.0105),
         }
-    }
+    },
 }
 
 
@@ -56,7 +57,7 @@ class GeminiAIModel(AIModel):
     api_key: str = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.GEMINI
     family: str = None
-    
+
     def __post_init__(self):
         if FLASH in self.model_name:
             self.family = FamilyModel.flash.value
@@ -69,15 +70,14 @@ class GeminiAIModel(AIModel):
             self.family = FamilyModel.flash.value
 
         logger.debug(f"Initialized GeminiAIModel: {self}")
-        
+
         self.api_key = settings.AI_KEYS[self.provider]
         genai.configure(api_key=self.api_key)
-        
+
         self.model = genai.GenerativeModel(self.model_name)
-        
 
     def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
-        
+
         common_args = get_common_args(max_tokens)
         kwargs = {
             **{
@@ -87,22 +87,22 @@ class GeminiAIModel(AIModel):
             **self.get_params(),
             **kwargs,
         }
-        
+
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
-        
-        stream_function = kwargs.get('stream_function')
-        check_connection = kwargs.get('check_connection')
-        stream_params = kwargs.get('stream_params')
-        
+
+        stream_function = kwargs.get("stream_function")
+        check_connection = kwargs.get("check_connection")
+        stream_params = kwargs.get("stream_params")
+
         # Parse only prompt content due to gemini call specifics
-        prompts = [obj['content'] for obj in messages if obj['role'] == 'user']
-        
+        prompts = [obj["content"] for obj in messages if obj["role"] == "user"]
+
         content = ""
-        
+
         try:
-            if kwargs.get('stream'):
+            if kwargs.get("stream"):
                 for prompt in prompts:
                     response = self.model.generate_content(prompt, stream=False)
                     content = response.text
@@ -112,18 +112,15 @@ class GeminiAIModel(AIModel):
                 for prompt in prompts:
                     if idx % 5 == 0:
                         if not check_connection(**stream_params):
-                            raise ConnectionLostError("Connection was lost!")  
+                            raise ConnectionLostError("Connection was lost!")
                     response = self.model.generate_content(prompt, stream=True)
                     for chunk in response:
                         stream_function(chunk.text, **stream_params)
                         content += chunk.text
                     idx += 1
-            
+
             return GeminiAIResponse(
-                message=Message(
-                    content=content,
-                    role="assistant"
-                ),
+                message=Message(content=content, role="assistant"),
                 content=content,
                 prompt=Prompt(
                     messages=kwargs.get("messages"),
@@ -131,9 +128,9 @@ class GeminiAIModel(AIModel):
                     max_tokens=max_tokens,
                     temperature=kwargs.get("temperature"),
                     top_p=kwargs.get("top_p"),
-                )
+                ),
             )
-            
+
         except Exception as e:
             logger.exception("[GEMINIAI] failed to handle chat stream", exc_info=e)
             raise RetryableCustomError(f"Gemini AI call failed!")
@@ -155,14 +152,13 @@ class GeminiAIModel(AIModel):
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            'api_key': self.api_key,
-            'model': self.model_name,
-            'max_tokens': self.max_tokens,
+            "api_key": self.api_key,
+            "model": self.model_name,
+            "max_tokens": self.max_tokens,
         }
 
     def get_metrics_data(self) -> t.Dict[str, t.Any]:
         return {
-            'model': self.model_name,
-            'max_tokens': self.max_tokens,
+            "model": self.model_name,
+            "max_tokens": self.max_tokens,
         }
-        

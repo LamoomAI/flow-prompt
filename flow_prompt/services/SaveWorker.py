@@ -16,7 +16,11 @@ class SaveWorker:
         self.thread.start()
 
     def save_user_interaction_async(
-        self, api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse
+        self,
+        api_token: str,
+        prompt_data: t.Dict[str, t.Any],
+        context: t.Dict[str, t.Any],
+        response: AIResponse,
     ):
         FlowPromptService.save_user_interaction(
             api_token, prompt_data, context, response
@@ -29,10 +33,14 @@ class SaveWorker:
                 sleep(1)
                 continue
             api_token, prompt_data, context, response = task
-            self.save_user_interaction_async(
-                api_token, prompt_data, context, response
-            )
+            self.save_user_interaction_async(api_token, prompt_data, context, response)
             self.queue.task_done()
 
-    def add_task(self, api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse):
+    def add_task(
+        self,
+        api_token: str,
+        prompt_data: t.Dict[str, t.Any],
+        context: t.Dict[str, t.Any],
+        response: AIResponse,
+    ):
         self.queue.put((api_token, prompt_data, context, response))

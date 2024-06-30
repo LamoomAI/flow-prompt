@@ -71,7 +71,7 @@ class FlowPrompt:
                     api_key=key_data["key"],
                 )
                 logger.debug(f"Initialized Azure client for {realm} {key_data['url']}")
-        
+
         settings.AI_KEYS[AI_MODELS_PROVIDER.CLAUDE] = self.claude_key
         settings.AI_KEYS[AI_MODELS_PROVIDER.GEMINI] = self.gemini_key
         self.worker = SaveWorker()
@@ -105,15 +105,15 @@ class FlowPrompt:
                 result = current_attempt.ai_model.call(
                     calling_messages.get_messages(),
                     calling_messages.max_sample_budget,
-                    stream_function = stream_function,
-                    check_connection = check_connection,
-                    stream_params = stream_params,
+                    stream_function=stream_function,
+                    check_connection=check_connection,
+                    stream_params=stream_params,
                     **params,
                 )
-                
+
                 sample_budget = self.calculate_budget_for_text(
-                        user_prompt, result.get_message_str()
-                    )
+                    user_prompt, result.get_message_str()
+                )
                 result.metrics.price_of_call = self.get_price(
                     current_attempt,
                     sample_budget,
@@ -121,7 +121,9 @@ class FlowPrompt:
                 )
                 result.metrics.sample_tokens_used = sample_budget
                 result.metrics.prompt_tokens_used = calling_messages.prompt_budget
-                result.metrics.ai_model_details = current_attempt.ai_model.get_metrics_data()
+                result.metrics.ai_model_details = (
+                    current_attempt.ai_model.get_metrics_data()
+                )
                 result.metrics.latency = current_timestamp_ms() - start_time
 
                 if settings.USE_API_SERVICE and self.api_token:
@@ -131,12 +133,16 @@ class FlowPrompt:
                         context,
                         result,
                     )
-                
+
                 return result
             except RetryableCustomError as e:
-                logger.error(f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}")
+                logger.error(
+                    f"Attempt failed: {prompt_attempts.current_attempt} with retryable error: {e}"
+                )
             except Exception as e:
-                logger.exception(f"Attempt failed: {prompt_attempts.current_attempt} with non-retryable error: {e}")
+                logger.exception(
+                    f"Attempt failed: {prompt_attempts.current_attempt} with non-retryable error: {e}"
+                )
                 raise e
 
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
@@ -150,7 +156,11 @@ class FlowPrompt:
         update redis with latest record;
         """
         logger.debug(f"Getting pipe prompt {prompt_id}")
-        if settings.USE_API_SERVICE and self.api_token and settings.RECEIVE_PROMPT_FROM_SERVER:
+        if (
+            settings.USE_API_SERVICE
+            and self.api_token
+            and settings.RECEIVE_PROMPT_FROM_SERVER
+        ):
             prompt_data = None
             prompt = settings.PIPE_PROMPTS.get(prompt_id)
             if prompt:
@@ -162,7 +172,7 @@ class FlowPrompt:
                 if not response.is_taken_globally:
                     prompt.version = response.version
                     return prompt
-                response.prompt['version'] = response.version
+                response.prompt["version"] = response.version
                 return PipePrompt.service_load(response.prompt)
             except Exception as e:
                 logger.exception(f"Error while getting prompt {prompt_id}: {e}")
@@ -171,7 +181,7 @@ class FlowPrompt:
                 else:
                     logger.exception(f"Prompt {prompt_id} not found")
                     raise FlowPromptIsnotFoundError()
-                
+
         else:
             return settings.PIPE_PROMPTS[prompt_id]
 

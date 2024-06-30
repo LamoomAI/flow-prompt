@@ -30,6 +30,9 @@ anthropic = ["anthropic"]
 gemini = ["google-generativeai"]
 all = ["openai", "anthropic", "google-generativeai"]
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

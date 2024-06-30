@@ -10,7 +10,7 @@ from flow_prompt.responses import AIResponse
 class AI_MODELS_PROVIDER(Enum):
     OPENAI = "openai"
     AZURE = "azure"
-    CLAUDE = "claude",
+    CLAUDE = ("claude",)
     GEMINI = "gemini"
 
 

@@ -43,6 +43,7 @@ def get_yaml_from_response(response: AIResponse):
             end_ind=end_ind,
         )
 
+
 def get_json_from_response(response: AIResponse, start_from: int = 0) -> TaggedContent:
     content, start_ind, end_ind = _get_format_from_response(
         response,
@@ -71,8 +72,9 @@ def get_json_from_response(response: AIResponse, start_from: int = 0) -> TaggedC
                 logger.exception(f"Couldn't parse json:\n{content}")
                 raise NotParsedResponseException()
 
+
 def _get_format_from_response(
-    self, response: AIResponse, tags: list[Tag], start_from: int = 0
+    response: AIResponse, tags: list[Tag], start_from: int = 0
 ):
     start_ind, end_ind = 0, -1
     content = response.response[start_from:]
@@ -88,9 +90,8 @@ def _get_format_from_response(
                     end_ind += len(t.end_tag)
                 else:
                     start_ind += len(t.start_tag)
-                response_tagged = content[start_ind:end_ind]
+                response_tagged = content[start_ind:end_ind].strip()
                 return response_tagged, start_from + start_ind, start_from + end_ind
             except Exception as e:
                 logger.exception(f"Couldn't parse json:\n{content}")
     return None, 0, -1
-
