@@ -42,7 +42,9 @@ class FlowPromptService:
         add a new record in storage, and adding that it's the latest published prompt; -> return 200
         update redis with latest record;
         """
-        logger.debug(f'Received request to get actual prompt prompt_id: {prompt_id}, prompt_data: {prompt_data}, version: {version}')
+        logger.debug(
+            f"Received request to get actual prompt prompt_id: {prompt_id}, prompt_data: {prompt_data}, version: {version}"
+        )
         timestamp = current_timestamp_ms()
         logger.debug(f"Getting actual prompt for {prompt_id}")
         cached_prompt = None
@@ -52,7 +54,9 @@ class FlowPromptService:
             cached_prompt = cached_data.get("prompt")
             cached_prompt_taken_globally = cached_data.get("is_taken_globally")
             if cached_prompt:
-                logger.debug(f"Prompt {prompt_id} is cached, returned in {current_timestamp_ms() - timestamp} ms")
+                logger.debug(
+                    f"Prompt {prompt_id} is cached, returned in {current_timestamp_ms() - timestamp} ms"
+                )
                 return FlowPromptServiceResponse(
                     prompt_id=prompt_id,
                     prompt=cached_prompt,
@@ -73,11 +77,12 @@ class FlowPromptService:
         response = requests.post(url, headers=headers, data=json_data)
         if response.status_code == 200:
             response_data = response.json()
-            logger.debug(f"Prompt {prompt_id} found in {current_timestamp_ms() - timestamp} ms: {response_data}")
+            logger.debug(
+                f"Prompt {prompt_id} found in {current_timestamp_ms() - timestamp} ms: {response_data}"
+            )
             prompt_data = response_data.get("prompt", prompt_data)
             is_taken_globally = response_data.get("is_taken_globally")
             version = response_data.get("version")
-        
 
             # update cache
             self.cached_prompts[prompt_id] = {
@@ -94,7 +99,9 @@ class FlowPromptService:
                 version=version,
             )
         else:
-            logger.debug(f"Prompt {prompt_id} not found, in {current_timestamp_ms() - timestamp} ms")
+            logger.debug(
+                f"Prompt {prompt_id} not found, in {current_timestamp_ms() - timestamp} ms"
+            )
             raise NotFoundPromptError(response.json())
 
     def get_cached_prompt(self, prompt_id: str) -> dict:
@@ -113,7 +120,10 @@ class FlowPromptService:
     @classmethod
     def save_user_interaction(
         cls,
-        api_token: str, prompt_data: t.Dict[str, t.Any], context: t.Dict[str, t.Any], response: AIResponse
+        api_token: str,
+        prompt_data: t.Dict[str, t.Any],
+        context: t.Dict[str, t.Any],
+        response: AIResponse,
     ):
         url = f"{cls.url}lib/logs"
         headers = {"Authorization": f"Token {api_token}"}

@@ -63,9 +63,7 @@ class AzureAIModel(OpenAIModel):
 
     def verify_client_has_creds(self):
         if self.realm not in settings.AI_CLIENTS[self.provider]:
-            raise ProviderNotFoundError(
-                f"Realm {self.realm} not found in AI_CLIENTS"
-            )
+            raise ProviderNotFoundError(f"Realm {self.realm} not found in AI_CLIENTS")
 
     @property
     def name(self) -> str:
@@ -78,7 +76,7 @@ class AzureAIModel(OpenAIModel):
 
     def get_client(self):
         return settings.AI_CLIENTS[self.provider][self.realm]
-    
+
     def get_metrics_data(self):
         return {
             "realm": self.realm,
