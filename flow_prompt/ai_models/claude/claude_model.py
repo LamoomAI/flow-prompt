@@ -124,8 +124,6 @@ class ClaudeAIModel(AIModel):
                     model=self.model, max_tokens=max_tokens, messages=messages
                 )
                 content = response.content[0].text
-            
-            
             return ClaudeAIReponse(
                 message=Message(content=content, role="assistant"),
                 content=content,
