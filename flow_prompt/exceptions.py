@@ -13,6 +13,7 @@ class FlowPromptIsnotFoundError(FlowPromptError):
 class BehaviourIsNotDefined(FlowPromptError):
     pass
 
+
 class ConnectionLostError(FlowPromptError):
     pass
 
@@ -30,4 +31,8 @@ class NotFoundPromptError(FlowPromptError):
 
 
 class ProviderNotFoundError(FlowPromptError):
+    pass
+
+
+class NotParsedResponseException(FlowPromptError):
     pass

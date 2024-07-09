@@ -1,3 +1,3 @@
-HAIKU = 'haiku'
-SONNET = 'sonnet'
-OPUS = 'opus'
+HAIKU = "haiku"
+SONNET = "sonnet"
+OPUS = "opus"
