@@ -36,3 +36,6 @@ class ProviderNotFoundError(FlowPromptError):
 
 class NotParsedResponseException(FlowPromptError):
     pass
+
+class APITokenNotProvided(FlowPromptError):
+    pass

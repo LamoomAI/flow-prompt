@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.14a8"
+version = "0.1.14a10"
 description = ""
 authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
