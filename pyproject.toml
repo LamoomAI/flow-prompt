@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.14a10"
+version = "0.1.14a13"
 description = ""
 authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
@@ -10,8 +10,8 @@ python = "^3.9"
 tiktoken = ">=0.5.2"
 pyyaml = "^6.0.1"
 openai = ">=1.9.0"
-anthropic = "^0.28.0"
-google-generativeai = "^0.6.0"
+google-generativeai = "^0.7.2"
+anthropic = "^0.31.1"
 
 [tool.poetry.dev-dependencies]
 poetry = "^1.7.1"
@@ -24,11 +24,6 @@ autopep8 = "^2.0.4"
 python-dotenv = "^1.0.1"
 twine = "^5.0.0"
 
-[tool.poetry.extras]
-openai=["openai"]
-anthropic = ["anthropic"]
-gemini = ["google-generativeai"]
-all = ["openai", "anthropic", "google-generativeai"]
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
