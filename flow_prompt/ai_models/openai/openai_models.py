@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 
-from flow_prompt import settings
+from openai import OpenAI
+
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 from flow_prompt.ai_models.utils import get_common_args
-from flow_prompt.exceptions import ProviderNotFoundError, ConnectionLostError
+from flow_prompt.exceptions import ConnectionLostError
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
@@ -88,7 +89,6 @@ class OpenAIModel(AIModel):
     support_functions: bool = False
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.OPENAI
     family: str = None
-    should_verify_client_has_creds: bool = True
     max_sample_budget: int = C_4K
 
     def __str__(self) -> str:
@@ -108,15 +108,7 @@ class OpenAIModel(AIModel):
                 f"Unknown family for {self.model}. Please add it obviously. Setting as GPT4"
             )
             self.family = FamilyModel.gpt4.value
-        if self.should_verify_client_has_creds:
-            self.verify_client_has_creds()
         logger.debug(f"Initialized OpenAIModel: {self}")
-
-    def verify_client_has_creds(self):
-        if self.provider not in settings.AI_CLIENTS:
-            raise ProviderNotFoundError(
-                f"Provider {self.provider} not found in AI_CLIENTS"
-            )
 
     @property
     def name(self) -> str:
@@ -153,6 +145,7 @@ class OpenAIModel(AIModel):
         stream_function: t.Callable = None,
         check_connection: t.Callable = None,
         stream_params: dict = {},
+        client_secrets: dict = {},
         **kwargs,
     ) -> OpenAIResponse:
         logger.debug(
@@ -169,12 +162,16 @@ class OpenAIModel(AIModel):
                 stream_function=stream_function,
                 check_connection=check_connection,
                 stream_params=stream_params,
+                client_secrets=client_secrets,
                 **kwargs,
             )
         raise NotImplementedError(f"Openai family {self.family} is not implemented")
 
-    def get_client(self):
-        return settings.AI_CLIENTS[self.provider]
+    def get_client(self, client_secrets: dict = {}):
+        return OpenAI(
+            organization=client_secrets.get("organization"),
+            api_key=client_secrets["api_key"],
+        )
 
     def call_chat_completion(
         self,
@@ -184,6 +181,7 @@ class OpenAIModel(AIModel):
         stream_function: t.Callable = None,
         check_connection: t.Callable = None,
         stream_params: dict = {},
+        client_secrets: dict = {},
         **kwargs,
     ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
@@ -199,7 +197,7 @@ class OpenAIModel(AIModel):
         if functions:
             kwargs["tools"] = functions
         try:
-            client = self.get_client()
+            client = self.get_client(client_secrets)
             result = client.chat.completions.create(
                 **kwargs,
             )

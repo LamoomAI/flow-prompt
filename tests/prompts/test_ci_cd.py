@@ -33,7 +33,6 @@ def openai_behaviour():
                     deployment_id="gpt-4-turbo",
                     max_tokens=C_128K,
                     support_functions=True,
-                    should_verify_client_has_creds=False
                 ),
                 weight=100,
             )

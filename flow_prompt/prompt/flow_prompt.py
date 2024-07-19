@@ -2,9 +2,6 @@ import logging
 import typing as t
 from dataclasses import dataclass
 from decimal import Decimal
-import requests
-
-from openai import AzureOpenAI, OpenAI
 
 from flow_prompt import Secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
@@ -12,7 +9,7 @@ from flow_prompt.ai_models.attempt_to_call import AttemptToCall
 from flow_prompt.ai_models.behaviour import AIModelsBehaviour, PromptAttempts
 from flow_prompt.exceptions import (
     FlowPromptIsnotFoundError,
-    RetryableCustomError, APITokenNotProvided
+    RetryableCustomError
 )
 from flow_prompt.services.SaveWorker import SaveWorker
 from flow_prompt.prompt.pipe_prompt import PipePrompt
@@ -37,6 +34,8 @@ class FlowPrompt:
     azure_keys: t.Dict[str, str] = None
     secrets: Secrets = None
 
+    clients = {}
+
     def __post_init__(self):
         self.secrets = Secrets()
         if not self.azure_keys:
@@ -56,29 +55,26 @@ class FlowPrompt:
             self.openai_org = self.secrets.OPENAI_ORG
         self.service = FlowPromptService()
         if self.openai_key:
-            openai_client = OpenAI(
-                organization=self.openai_org,
-                api_key=self.openai_key,
-            )
-            logger.debug(f"Initialized OpenAI client: {openai_client}")
-            settings.AI_CLIENTS[AI_MODELS_PROVIDER.OPENAI] = openai_client
+            self.clients[AI_MODELS_PROVIDER.OPENAI] = {
+                'organization': self.openai_org,
+                'api_key': self.openai_key,
+            }
         if self.azure_keys:
-            settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE] = {}
+            if not self.clients.get(AI_MODELS_PROVIDER.AZURE):
+                self.clients[AI_MODELS_PROVIDER.AZURE] = {}
             for realm, key_data in self.azure_keys.items():
-                if realm in settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE]:
-                    logger.warning(
-                        f"Realm {realm} already initialized. Rewriting it with new data"
-                    )
-                settings.AI_CLIENTS[AI_MODELS_PROVIDER.AZURE][realm] = AzureOpenAI(
-                    api_version=key_data.get("api_version", "2023-07-01-preview"),
-                    azure_endpoint=key_data["url"],
-                    api_key=key_data["key"],
-                )
+                self.clients[AI_MODELS_PROVIDER.AZURE][realm] = {
+                    'api_version': key_data.get("api_version", "2023-07-01-preview"),
+                    'azure_endpoint': key_data["url"],
+                    'api_key': key_data["key"],
+                }
                 logger.debug(f"Initialized Azure client for {realm} {key_data['url']}")
-
-        settings.AI_KEYS[AI_MODELS_PROVIDER.CLAUDE] = self.claude_key
-        settings.AI_KEYS[AI_MODELS_PROVIDER.GEMINI] = self.gemini_key
+        if self.claude_key:
+            self.clients[AI_MODELS_PROVIDER.CLAUDE] = {'api_key': self.claude_key}
+        if self.gemini_key:
+            self.clients[AI_MODELS_PROVIDER.GEMINI] = {'api_key': self.gemini_key}
         self.worker = SaveWorker()
+
 
     def call(
         self,
@@ -111,42 +107,6 @@ class FlowPrompt:
             """
             Create CI/CD when calling first time
             """
-            
-            ideal_answer = test_data.get('ideal_answer', None)
-            if ideal_answer:
-                if self.api_token is None:
-                    raise APITokenNotProvided()
-                
-                url = f"{FLOW_PROMPT_URL}/lib/tests"
-                
-                headers = {"Authorization": f"Token {self.api_token}"}
-                
-                calling_messages = user_prompt.resolve(context)
-                
-                if not version:
-                    version = "test"
-                    
-                
-                behavior_name = test_data.get('behavior_name', "gpt-4-turbo")
-                    
-                data = {
-                    "context": context,
-                    "user_prompt_data": 
-                        {
-                            "prompt_id": prompt_id,
-                            "prompt_version": version,
-                            "chats": calling_messages.get_messages()
-                        },
-                    "ideal_answer": ideal_answer,
-                    "behavior_name": behavior_name
-                }
-                logger.debug(f"Request to {url} with data: {data}")
-                json_data = json.dumps(data)
-
-                requests.post(url, headers=headers, data=json_data)
-                
-                logger.info(f"Created Ci/CD for prompt {prompt_id} and attempt {current_attempt}")
-
             try:
                 result = current_attempt.ai_model.call(
                     calling_messages.get_messages(),
@@ -154,6 +114,7 @@ class FlowPrompt:
                     stream_function=stream_function,
                     check_connection=check_connection,
                     stream_params=stream_params,
+                    client_secrets=self.clients[current_attempt.ai_model.provider],
                     **params,
                 )
 
@@ -178,10 +139,8 @@ class FlowPrompt:
                         pipe_prompt.service_dump(),
                         context,
                         result,
+                        test_data
                     )
-                    
-                
-
                 return result
             except RetryableCustomError as e:
                 logger.error(
