@@ -156,7 +156,7 @@ class FlowPromptService:
             return
         url = f"{cls.url}lib/tests"
         headers = {"Authorization": f"Token {api_token}"}
-        behavior_name = test_data.get('behavior_name', "gpt-4-turbo")
+        behavior_name = test_data.get('behavior_name') or test_data.get('behaviour_name')
         data = {
             "context": context,
             "prompt": prompt_data,

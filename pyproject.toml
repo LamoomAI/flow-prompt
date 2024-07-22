@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.14a13"
+version = "0.1.14a17"
 description = ""
 authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
@@ -9,9 +9,9 @@ readme = "README.md"
 python = "^3.9"
 tiktoken = ">=0.5.2"
 pyyaml = "^6.0.1"
-openai = ">=1.9.0"
+openai = "^1.35.15"
 google-generativeai = "^0.7.2"
-anthropic = "^0.31.1"
+anthropic = "^0.31.2"
 
 [tool.poetry.dev-dependencies]
 poetry = "^1.7.1"
