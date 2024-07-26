@@ -142,3 +142,28 @@ class FlowPromptService:
             return response.json()
         else:
             logger.error(response)
+
+    @classmethod
+    def create_test_with_ideal_answer(
+        cls,
+        api_token: str,
+        prompt_data: t.Dict[str, t.Any],
+        context: t.Dict[str, t.Any],
+        test_data: dict,
+    ):
+        ideal_answer = test_data.get('ideal_answer', None)
+        if not ideal_answer:
+            return
+        url = f"{cls.url}lib/tests"
+        headers = {"Authorization": f"Token {api_token}"}
+        behavior_name = test_data.get('behavior_name') or test_data.get('behaviour_name')
+        data = {
+            "context": context,
+            "prompt": prompt_data,
+            "ideal_answer": ideal_answer,
+            "behavior_name": behavior_name
+        }
+        logger.debug(f"Request to {url} with data: {data}")
+        json_data = json.dumps(data)
+        requests.post(url, headers=headers, data=json_data)
+        logger.info(f"Created Ci/CD for prompt {prompt_data['prompt_id']}")

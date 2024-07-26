@@ -32,8 +32,13 @@ class SaveWorker:
             if task is None:
                 sleep(1)
                 continue
-            api_token, prompt_data, context, response = task
-            self.save_user_interaction_async(api_token, prompt_data, context, response)
+            api_token, prompt_data, context, response, test_data = task
+            FlowPromptService.save_user_interaction(
+                api_token, prompt_data, context, response
+            )
+            FlowPromptService.create_test_with_ideal_answer(
+                api_token, prompt_data, context, test_data
+            )
             self.queue.task_done()
 
     def add_task(
@@ -42,5 +47,6 @@ class SaveWorker:
         prompt_data: t.Dict[str, t.Any],
         context: t.Dict[str, t.Any],
         response: AIResponse,
+        test_data: t.Optional[dict] = None,
     ):
-        self.queue.put((api_token, prompt_data, context, response))
+        self.queue.put((api_token, prompt_data, context, response, test_data))

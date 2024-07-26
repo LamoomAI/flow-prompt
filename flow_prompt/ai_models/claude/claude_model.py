@@ -5,8 +5,6 @@ from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
 
-from flow_prompt import settings
-
 import typing as t
 from dataclasses import dataclass
 
@@ -16,7 +14,6 @@ from flow_prompt.ai_models.utils import get_common_args
 
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
-from flow_prompt.settings import Secrets
 from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import anthropic
 
@@ -81,10 +78,12 @@ class ClaudeAIModel(AIModel):
 
         logger.debug(f"Initialized ClaudeAIModel: {self}")
 
-        self.api_key = settings.AI_KEYS[self.provider]
 
-    def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
+    def get_client(self, client_secrets: dict) -> anthropic.Anthropic:
+        return anthropic.Anthropic(api_key=client_secrets.get('api_key'))
 
+
+    def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
         common_args = get_common_args(max_tokens)
         kwargs = {
             **{
@@ -98,6 +97,7 @@ class ClaudeAIModel(AIModel):
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
         )
+        client = self.get_client(client_secrets)
 
         stream_function = kwargs.get("stream_function")
         check_connection = kwargs.get("check_connection")
@@ -107,7 +107,7 @@ class ClaudeAIModel(AIModel):
 
         try:
             if kwargs.get("stream"):
-                with anthropic.Anthropic(api_key=self.api_key).messages.stream(
+                with client.messages.stream(
                     model=self.model, max_tokens=max_tokens, messages=messages
                 ) as stream:
                     idx = 0
@@ -120,12 +120,10 @@ class ClaudeAIModel(AIModel):
                         content += text
                         idx += 1
             else:
-                response = anthropic.Anthropic(api_key=self.api_key).messages.create(
+                response = client.messages.create(
                     model=self.model, max_tokens=max_tokens, messages=messages
                 )
                 content = response.content[0].text
-                stream_function(content, **stream_params)
-
             return ClaudeAIReponse(
                 message=Message(content=content, role="assistant"),
                 content=content,
@@ -158,7 +156,6 @@ class ClaudeAIModel(AIModel):
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            "api_key": self.api_key,
             "model": self.model,
             "max_tokens": self.max_tokens,
         }

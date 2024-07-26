@@ -2,6 +2,8 @@ import logging
 import typing as t
 from dataclasses import dataclass
 
+from openai import AzureOpenAI
+
 from flow_prompt import settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.openai.openai_models import FamilyModel, OpenAIModel
@@ -57,13 +59,7 @@ class AzureAIModel(OpenAIModel):
                     f"Unknown family for {self.deployment_id}. Please add it obviously. Setting as GPT4"
                 )
                 self.family = FamilyModel.gpt4.value
-        if self.should_verify_client_has_creds:
-            self.verify_client_has_creds()
         logger.debug(f"Initialized AzureAIModel: {self}")
-
-    def verify_client_has_creds(self):
-        if self.realm not in settings.AI_CLIENTS[self.provider]:
-            raise ProviderNotFoundError(f"Realm {self.realm} not found in AI_CLIENTS")
 
     @property
     def name(self) -> str:
@@ -74,8 +70,13 @@ class AzureAIModel(OpenAIModel):
             "model": self.deployment_id,
         }
 
-    def get_client(self):
-        return settings.AI_CLIENTS[self.provider][self.realm]
+    def get_client(self, client_secrets: dict = {}):
+        realm_data = client_secrets.get(self.realm)
+        return AzureOpenAI(
+            api_version=realm_data.get("api_version", "2023-07-01-preview"),
+            azure_endpoint=realm_data["azure_endpoint"],
+            api_key=realm_data["api_key"],
+        )
 
     def get_metrics_data(self):
         return {

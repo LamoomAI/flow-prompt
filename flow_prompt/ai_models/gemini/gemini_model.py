@@ -14,7 +14,6 @@ from flow_prompt.ai_models.gemini.constants import FLASH, PRO
 from flow_prompt.ai_models.utils import get_common_args
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
-from flow_prompt.settings import Secrets
 from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import google.generativeai as genai
 
@@ -54,7 +53,6 @@ GEMINI_AI_PRICING = {
 class GeminiAIModel(AIModel):
     model_name: str
     model: genai.GenerativeModel = None
-    api_key: str = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.GEMINI
     family: str = None
 
@@ -69,21 +67,17 @@ class GeminiAIModel(AIModel):
             )
             self.family = FamilyModel.flash.value
 
-        logger.debug(f"Initialized GeminiAIModel: {self}")
-
-        self.api_key = settings.AI_KEYS[self.provider]
-        genai.configure(api_key=self.api_key)
-
+    def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
+        genai.configure(api_key=client_secrets["api_key"])
         self.model = genai.GenerativeModel(self.model_name)
-
-    def call(self, messages: t.List[dict], max_tokens: int, **kwargs) -> AIResponse:
-
         common_args = get_common_args(max_tokens)
         kwargs = {
             **{
                 "messages": messages,
             },
             **common_args,
+            **client_secrets,
+            **client_secrets,
             **self.get_params(),
             **kwargs,
         }
@@ -102,11 +96,10 @@ class GeminiAIModel(AIModel):
         content = ""
 
         try:
-            if kwargs.get("stream"):
+            if not kwargs.get('stream'):
                 for prompt in prompts:
                     response = self.model.generate_content(prompt, stream=False)
                     content = response.text
-                    stream_function(content, **stream_params)
             else:
                 idx = 0
                 for prompt in prompts:
@@ -152,7 +145,6 @@ class GeminiAIModel(AIModel):
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            "api_key": self.api_key,
             "model": self.model_name,
             "max_tokens": self.max_tokens,
         }

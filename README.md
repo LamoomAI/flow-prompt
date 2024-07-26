@@ -20,6 +20,7 @@ pip install flow-prompt
 ```
 
 ## Authentication
+
 ### OpenAI Keys
 ```python
 # setting as os.env

@@ -38,8 +38,6 @@ RECEIVE_PROMPT_FROM_SERVER = parse_bool(
     os.environ.get("FLOW_PROMPT_RECEIVE_PROMPT_FROM_SERVER", True)
 )
 PIPE_PROMPTS = {}
-AI_CLIENTS = {}
-AI_KEYS = {}
 
 
 @dataclass
