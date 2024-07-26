@@ -91,25 +91,24 @@ class GeminiAIModel(AIModel):
         stream_params = kwargs.get("stream_params")
 
         # Parse only prompt content due to gemini call specifics
-        prompts = [obj["content"] for obj in messages if obj["role"] == "user"]
+        prompt = '\n\n'.join([obj["content"] for obj in messages])
 
         content = ""
 
         try:
             if not kwargs.get('stream'):
-                for prompt in prompts:
-                    response = self.model.generate_content(prompt, stream=False)
-                    content = response.text
+                response = self.model.generate_content(prompt, stream=False)
+                content = response.text
             else:
+                response = self.model.generate_content(prompt, stream=True)
                 idx = 0
-                for prompt in prompts:
+                for chunk in response:
                     if idx % 5 == 0:
+                        idx = 0
                         if not check_connection(**stream_params):
                             raise ConnectionLostError("Connection was lost!")
-                    response = self.model.generate_content(prompt, stream=True)
-                    for chunk in response:
-                        stream_function(chunk.text, **stream_params)
-                        content += chunk.text
+                    stream_function(chunk.text, **stream_params)
+                    content += chunk.text
                     idx += 1
 
             return GeminiAIResponse(
