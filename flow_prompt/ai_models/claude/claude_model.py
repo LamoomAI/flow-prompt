@@ -83,16 +83,26 @@ class ClaudeAIModel(AIModel):
         return anthropic.Anthropic(api_key=client_secrets.get('api_key'))
 
 
+    def uny_all_messages_with_same_role(self, messages: t.List[dict]) -> t.List[dict]:
+        result = []
+        last_role = None
+        for message in messages:
+            if last_role != message.get("role"):
+                result.append(message)
+                last_role = message.get("role")
+            else:
+                result[-1]["content"] += message.get("content")
+        return result
+
+
     def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
         common_args = get_common_args(max_tokens)
         kwargs = {
-            **{
-                "messages": messages,
-            },
             **common_args,
             **self.get_params(),
             **kwargs,
         }
+        messages = self.uny_all_messages_with_same_role(messages)
 
         logger.debug(
             f"Calling {messages} with max_tokens {max_tokens} and kwargs {kwargs}"
