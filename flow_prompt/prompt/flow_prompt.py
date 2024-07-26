@@ -21,9 +21,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-FLOW_PROMPT_URL = 'https://api.qa.flow-prompt.com'
-
-
 @dataclass
 class FlowPrompt:
     api_token: str = None
