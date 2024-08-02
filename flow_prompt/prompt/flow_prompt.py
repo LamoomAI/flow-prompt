@@ -50,6 +50,12 @@ class FlowPrompt:
         if not self.openai_org and self.secrets.OPENAI_ORG:
             logger.debug(f"Using OpenAI organization from secrets")
             self.openai_org = self.secrets.OPENAI_ORG
+        if not self.gemini_key and self.secrets.GEMINI_API_KEY:
+            logger.debug(f"Using Gemini API key from secrets")
+            self.gemini_key = self.secrets.GEMINI_API_KEY
+        if not self.claude_key and self.secrets.CLAUDE_API_KEY:
+            logger.debug(f"Using Claude API key from secrets")
+            self.claude_key = self.secrets.CLAUDE_API_KEY
         self.service = FlowPromptService()
         if self.openai_key:
             self.clients[AI_MODELS_PROVIDER.OPENAI] = {
