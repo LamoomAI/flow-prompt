@@ -30,6 +30,7 @@ class FamilyModel(Enum):
     chat = "GPT-3.5"
     gpt4 = "GPT-4"
     gpt4o = "GPT-4o"
+    gpt4o_mini = "GPT-4o-mini"
     instruct_gpt = "InstructGPT"
 
 
@@ -74,6 +75,12 @@ OPEN_AI_PRICING = {
             "price_per_sample_1k_tokens": Decimal(0.015),
         },
     },
+    FamilyModel.gpt4o_mini.value: {
+        C_128K: {
+            "price_per_prompt_1k_tokens": Decimal(0.00015),
+            "price_per_sample_1k_tokens": Decimal(0.0006),
+        },
+    },
     FamilyModel.instruct_gpt.value: {
         M_DAVINCI: {
             "price_per_prompt_1k_tokens": Decimal(0.0015),
@@ -99,9 +106,11 @@ class OpenAIModel(AIModel):
             self.family = FamilyModel.instruct_gpt.value
         elif self.model.startswith("gpt-3"):
             self.family = FamilyModel.chat.value
-        elif self.model.startswith(("gpt-4o")):
+        elif self.model.startswith("gpt-4o-mini"):
+            self.family = FamilyModel.gpt4o_mini.value
+        elif self.model.startswith("gpt-4o"):
             self.family = FamilyModel.gpt4o.value
-        elif self.model.startswith(("gpt-4", "gpt")):
+        elif self.model.startswith(("gpt4", "gpt-4", "gpt")):
             self.family = FamilyModel.gpt4.value
         else:
             logger.warning(
