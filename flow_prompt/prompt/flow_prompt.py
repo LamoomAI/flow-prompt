@@ -2,7 +2,8 @@ import logging
 import typing as t
 from dataclasses import dataclass
 from decimal import Decimal
-
+import requests
+from flow_prompt.settings import FLOW_PROMPT_API_URI
 from flow_prompt import Secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
 from flow_prompt.ai_models.attempt_to_call import AttemptToCall
@@ -77,6 +78,34 @@ class FlowPrompt:
         if self.gemini_key:
             self.clients[AI_MODELS_PROVIDER.GEMINI] = {'api_key': self.gemini_key}
         self.worker = SaveWorker()
+
+    
+    def create_test(self, 
+        prompt_id: str,
+        test_context: t.Dict[str, str],
+        ideal_answer: str = None
+    ):
+        '''
+        Create new test
+        '''
+        
+        url = f'{FLOW_PROMPT_API_URI}lib/tests?createTest'
+        headers = {"Authorization": f"Token {self.api_token}"}
+        if 'ideal_answer' in test_context:
+            ideal_answer = test_context['ideal_answer']
+            
+        data = {
+            'prompt_id': prompt_id,
+            'ideal_answer': ideal_answer,
+            'test_context': test_context
+        }
+        json_data = json.dumps(data)
+        response = requests.post(url, headers=headers, data=json_data)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logger.error(response)
 
 
     def call(
