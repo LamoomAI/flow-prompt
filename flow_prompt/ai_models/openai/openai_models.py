@@ -18,7 +18,7 @@ from .utils import raise_openai_exception
 
 C_4K = 4096
 C_8K = 8192
-C_128K = 127_000
+C_128K = 128_000
 C_16K = 16384
 C_32K = 32768
 M_DAVINCI = "davinci"
@@ -164,6 +164,7 @@ class OpenAIModel(AIModel):
             FamilyModel.chat.value,
             FamilyModel.gpt4.value,
             FamilyModel.gpt4o.value,
+            FamilyModel.gpt4o_mini.value
         ]:
             return self.call_chat_completion(
                 messages,

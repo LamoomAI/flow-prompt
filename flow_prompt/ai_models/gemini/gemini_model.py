@@ -20,7 +20,7 @@ import google.generativeai as genai
 logger = logging.getLogger(__name__)
 
 
-C_128K = 127_000
+C_128K = 128_000
 
 
 class FamilyModel(Enum):
