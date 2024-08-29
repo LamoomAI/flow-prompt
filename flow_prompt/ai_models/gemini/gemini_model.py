@@ -4,7 +4,6 @@ import logging
 from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
-from flow_prompt import settings
 
 import typing as t
 from dataclasses import dataclass
@@ -51,25 +50,25 @@ GEMINI_AI_PRICING = {
 
 @dataclass(kw_only=True)
 class GeminiAIModel(AIModel):
-    model_name: str
-    model: genai.GenerativeModel = None
+    model: str
+    gemini_model: genai.GenerativeModel = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.GEMINI
     family: str = None
 
     def __post_init__(self):
-        if FLASH in self.model_name:
+        if FLASH in self.model:
             self.family = FamilyModel.flash.value
-        elif PRO in self.model_name:
+        elif PRO in self.model:
             self.family = FamilyModel.pro.value
         else:
             logger.warning(
-                f"Unknown family for {self.model_name}. Please add it obviously. Setting as Gemini 1.5 Flash"
+                f"Unknown family for {self.model}. Please add it obviously. Setting as Gemini 1.5 Flash"
             )
             self.family = FamilyModel.flash.value
 
     def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
         genai.configure(api_key=client_secrets["api_key"])
-        self.model = genai.GenerativeModel(self.model_name)
+        self.gemini_model = genai.GenerativeModel(self.model)
         common_args = get_common_args(max_tokens)
         kwargs = {
             **{
@@ -97,10 +96,10 @@ class GeminiAIModel(AIModel):
 
         try:
             if not kwargs.get('stream'):
-                response = self.model.generate_content(prompt, stream=False)
+                response = self.gemini_model.generate_content(prompt, stream=False)
                 content = response.text
             else:
-                response = self.model.generate_content(prompt, stream=True)
+                response = self.gemini_model.generate_content(prompt, stream=True)
                 idx = 0
                 for chunk in response:
                     if idx % 5 == 0:
@@ -128,7 +127,7 @@ class GeminiAIModel(AIModel):
             raise RetryableCustomError(f"Gemini AI call failed!")
 
     def name(self) -> str:
-        return self.model_name
+        return self.model
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
@@ -144,12 +143,12 @@ class GeminiAIModel(AIModel):
 
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
-            "model": self.model_name,
+            "model": self.model,
             "max_tokens": self.max_tokens,
         }
 
     def get_metrics_data(self) -> t.Dict[str, t.Any]:
         return {
-            "model": self.model_name,
+            "model": self.model,
             "max_tokens": self.max_tokens,
         }

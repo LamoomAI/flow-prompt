@@ -86,3 +86,31 @@ OPENAI_GPT3_5_TURBO_0125_BEHAVIOUR = AIModelsBehaviour(
         ),
     ]
 )
+
+OPENAI_GPT4O_BEHAVIOUR = AIModelsBehaviour(
+    attempts=[
+        AttemptToCall(
+            ai_model=OpenAIModel(
+                model="gpt-4o",
+                max_tokens=C_128K,
+                support_functions=True,
+            ),
+            weight=100,
+        ),
+    ]
+)
+
+
+OPENAI_GPT4O_MINI_BEHAVIOUR = AIModelsBehaviour(
+    attempts=[
+        AttemptToCall(
+            ai_model=OpenAIModel(
+                model="gpt-4o-mini",
+                max_tokens=C_128K,
+                support_functions=True,
+            ),
+            weight=100,
+        ),
+    ]
+)
+

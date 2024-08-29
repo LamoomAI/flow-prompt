@@ -60,7 +60,7 @@ def gemini_behaviour():
         attempts=[
             AttemptToCall(
                 ai_model=GeminiAIModel(
-                    model_name="gemini-1.5-flash",
+                    model="gemini-1.5-flash",
                     max_tokens=C_128K                
                 ),
                 weight=100,
