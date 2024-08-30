@@ -39,6 +39,47 @@ os.setenv('AZURE_KEYS', '{"name_realm":{"url": "https://baseurl.azure.com/","key
 FlowPrompt(azure_keys={"realm_name":{"url": "https://baseurl.azure.com/", "key": "your_secret"}})
 ```
 
+### Model Agnostic:
+Mix models easily, and districute the load across models. The system will automatically distribute your load based on the weights. We support:
+- Claude
+- Gemini
+- OpenAI (Azure OpenAI models)
+```
+def_behaviour = behaviour.AIModelsBehaviour(attempts=[
+    AttemptToCall(
+        ai_model=OpenAIModel(
+                model='gpt-4o',
+                max_tokens=128_000,
+            ),
+        weight=100
+    ),
+    AttemptToCall(
+        ai_model=AzureAIModel(
+            realm='useast,
+            deployment_id='gpt-4o',
+            max_tokens=128_000,
+        ),
+        weight=100
+    ),
+    AttemptToCall(
+        ai_model=ClaudeAIModel(
+            model = 'claude-3-5-sonnet-20240620',
+            max_tokens=200_000,
+        ),
+        weight=100
+    ),
+    AttemptToCall(
+        ai_model=GeminiAIModel(
+            model = 'gemini-1.5-pro',
+            max_tokens=1_000_000,
+        ),
+        weight=100
+    )
+])
+
+response_llm = fp.call(agent.id, context, def_behaviour)
+```
+
 ### FlowPrompt Keys
 Obtain an API token from Flow Prompt and add it:
 

@@ -87,6 +87,8 @@ class ClaudeAIModel(AIModel):
         result = []
         last_role = None
         for message in messages:
+            if message.get("role") == "system":
+                message["role"] = "user"
             if last_role != message.get("role"):
                 result.append(message)
                 last_role = message.get("role")
