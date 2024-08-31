@@ -1,6 +1,7 @@
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 import logging
 
+from flow_prompt.ai_models.constants import C_200K
 from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
@@ -19,8 +20,6 @@ import anthropic
 
 logger = logging.getLogger(__name__)
 
-
-C_200K = 200000
 
 
 class FamilyModel(Enum):

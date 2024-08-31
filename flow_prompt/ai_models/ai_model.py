@@ -31,6 +31,15 @@ class AIModel:
     def price_per_prompt_1k_tokens(self) -> Decimal:
         return self._price_per_prompt_1k_tokens
 
+    def _decimal(self, value) -> Decimal:
+        return Decimal(value).quantize(Decimal(".00001"))
+    
+    def get_prompt_price(self, count_tokens: int) -> Decimal:
+        return self._decimal(self.price_per_prompt_1k_tokens * Decimal(count_tokens) / 1000)
+    
+    def get_sample_price(self, prompt_sample, count_tokens: int) -> Decimal:
+        return self._decimal(self.price_per_sample_1k_tokens * Decimal(count_tokens) / 1000)
+
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
         return self._price_per_sample_1k_tokens

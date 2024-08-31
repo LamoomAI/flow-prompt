@@ -1,2 +1,0 @@
-FLASH = "flash"
-PRO = "pro"
