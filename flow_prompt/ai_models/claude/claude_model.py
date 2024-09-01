@@ -155,7 +155,7 @@ class ClaudeAIModel(AIModel):
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
-        keys = CLAUDE_AI_PRICING[self.family].keys()
+        keys = list(CLAUDE_AI_PRICING[self.family].keys())
         def_pricing = CLAUDE_AI_PRICING[self.family].get(keys[0])
         return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, def_pricing)[
             "price_per_prompt_1k_tokens"
@@ -163,7 +163,7 @@ class ClaudeAIModel(AIModel):
 
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
-        keys = CLAUDE_AI_PRICING[self.family].keys()
+        keys = list(CLAUDE_AI_PRICING[self.family].keys())
         def_pricing = CLAUDE_AI_PRICING[self.family].get(keys[0])
         return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, def_pricing)[
             "price_per_sample_1k_tokens"
