@@ -29,8 +29,8 @@ class FamilyModel(Enum):
 
 
 DEFAULT_PRICING = {
-    "price_per_prompt_1k_tokens": Decimal(0.00025),
-    "price_per_sample_1k_tokens": Decimal(0.00125),
+    "price_per_prompt_1k_tokens": Decimal(0.003),
+    "price_per_sample_1k_tokens": Decimal(0.015),
 }
 
 CLAUDE_AI_PRICING = {
@@ -155,13 +155,17 @@ class ClaudeAIModel(AIModel):
 
     @property
     def price_per_prompt_1k_tokens(self) -> Decimal:
-        return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
+        keys = CLAUDE_AI_PRICING[self.family].keys()
+        def_pricing = CLAUDE_AI_PRICING[self.family].get(keys[0])
+        return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, def_pricing)[
             "price_per_prompt_1k_tokens"
         ]
 
     @property
     def price_per_sample_1k_tokens(self) -> Decimal:
-        return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
+        keys = CLAUDE_AI_PRICING[self.family].keys()
+        def_pricing = CLAUDE_AI_PRICING[self.family].get(keys[0])
+        return CLAUDE_AI_PRICING[self.family].get(self.max_tokens, def_pricing)[
             "price_per_sample_1k_tokens"
         ]
 
