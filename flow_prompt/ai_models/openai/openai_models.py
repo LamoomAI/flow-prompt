@@ -7,6 +7,7 @@ from enum import Enum
 from openai import OpenAI
 
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
+from flow_prompt.ai_models.constants import C_128K, C_16K, C_32K, C_4K
 from flow_prompt.ai_models.openai.responses import OpenAIResponse
 from flow_prompt.ai_models.utils import get_common_args
 from flow_prompt.exceptions import ConnectionLostError
@@ -16,11 +17,6 @@ from flow_prompt.responses import Prompt
 
 from .utils import raise_openai_exception
 
-C_4K = 4096
-C_8K = 8192
-C_128K = 127_000
-C_16K = 16384
-C_32K = 32768
 M_DAVINCI = "davinci"
 
 logger = logging.getLogger(__name__)

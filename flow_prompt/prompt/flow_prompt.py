@@ -200,14 +200,7 @@ class FlowPrompt:
             return 0
         return len(user_prompt.encoding.encode(text))
 
-    def _decimal(self, value) -> Decimal:
-        return Decimal(value).quantize(Decimal(".00001"))
-
     def get_price(
         self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int
     ) -> Decimal:
-        return self._decimal(
-            prompt_budget * attempt.ai_model.price_per_prompt_1k_tokens / 1000
-        ) + self._decimal(
-            sample_budget * attempt.ai_model.price_per_sample_1k_tokens / 1000
-        )
+        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(prompt_budget, sample_budget)
