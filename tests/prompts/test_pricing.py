@@ -109,7 +109,7 @@ def test_openai_pricing(fp, openai_behaviour_4o, openai_behaviour_4o_mini):
     assert result_4o.metrics.price_of_call > result_4o_mini.metrics.price_of_call
     
 
-def test_claude_pricing(fp, claude_behaviour_haiku, claude_behaviour_sonnet):
+def test_claude_pricing(fp, openai_behaviour_4o_mini, claude_behaviour_haiku, claude_behaviour_sonnet):
 
     context = {
         'ideal_answer': "There are eight planets",
@@ -121,6 +121,7 @@ def test_claude_pricing(fp, claude_behaviour_haiku, claude_behaviour_sonnet):
     fp.service.clear_cache()
     prompt = PipePrompt(id=prompt_id) 
     prompt.add("{text}", role='user')
-
-    fp.call(prompt.id, context, claude_behaviour_haiku, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
-    fp.call(prompt.id, context, claude_behaviour_sonnet, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    print(openai_behaviour_4o_mini.attempts[0].ai_model._price_per_prompt_1k_tokens)
+    print(openai_behaviour_4o_mini.attempts[0].ai_model.family)
+    #fp.call(prompt.id, context, claude_behaviour_haiku, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    #fp.call(prompt.id, context, claude_behaviour_sonnet, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})

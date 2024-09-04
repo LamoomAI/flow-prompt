@@ -18,7 +18,7 @@ from flow_prompt.prompt.user_prompt import UserPrompt
 from flow_prompt.responses import AIResponse
 from flow_prompt.services.flow_prompt import FlowPromptService
 from flow_prompt.utils import current_timestamp_ms
-import json
+
 
 logger = logging.getLogger(__name__)
 
@@ -229,14 +229,7 @@ class FlowPrompt:
             return 0
         return len(user_prompt.encoding.encode(text))
 
-    def _decimal(self, value) -> Decimal:
-        return Decimal(value).quantize(Decimal(".00001"))
-
     def get_price(
         self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int
     ) -> Decimal:
-        return self._decimal(
-            prompt_budget * attempt.ai_model.price_per_prompt_1k_tokens / 1000
-        ) + self._decimal(
-            sample_budget * attempt.ai_model.price_per_sample_1k_tokens / 1000
-        )
+        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(prompt_budget, sample_budget)

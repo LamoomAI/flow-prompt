@@ -1,6 +1,7 @@
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 import logging
 
+from flow_prompt.ai_models.constants import C_1M, C_128K
 from flow_prompt.responses import AIResponse
 from decimal import Decimal
 from enum import Enum
@@ -9,22 +10,27 @@ import typing as t
 from dataclasses import dataclass
 
 from flow_prompt.ai_models.gemini.responses import GeminiAIResponse
-from flow_prompt.ai_models.gemini.constants import FLASH, PRO
+
 from flow_prompt.ai_models.utils import get_common_args
 from openai.types.chat import ChatCompletionMessage as Message
 from flow_prompt.responses import Prompt
 from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import google.generativeai as genai
 
+
 logger = logging.getLogger(__name__)
 
 
-C_128K = 128_000
+FLASH = "gemini-1.5-flash"
+PRO = "gemini-1.5-pro"
+PRO_1_0 = "gemini-1.0-pro"
+
 
 
 class FamilyModel(Enum):
     flash = "Gemini 1.5 Flash"
     pro = "Gemini 1.5 Pro"
+    pro_1_0 = "Gemini 1.0 Pro"
 
 
 DEFAULT_PRICING = {
@@ -35,14 +41,28 @@ DEFAULT_PRICING = {
 GEMINI_AI_PRICING = {
     FamilyModel.flash.value: {
         C_128K: {
-            "price_per_prompt_1k_tokens": Decimal(0.00035),
-            "price_per_sample_1k_tokens": Decimal(0.00105),
+            "price_per_prompt_1k_tokens": Decimal(0.0075),
+            "price_per_sample_1k_tokens": Decimal(0.030),
+        },
+        C_1M: {
+            "price_per_prompt_1k_tokens": Decimal(0.015),
+            "price_per_sample_1k_tokens": Decimal(0.060),
+        }
+    },
+    FamilyModel.pro_1_0.value: {
+        C_1M: {
+            "price_per_prompt_1k_tokens": Decimal(0.0005),
+            "price_per_sample_1k_tokens": Decimal(0.0015),
         }
     },
     FamilyModel.pro.value: {
         C_128K: {
             "price_per_prompt_1k_tokens": Decimal(0.0035),
             "price_per_sample_1k_tokens": Decimal(0.0105),
+        },
+        C_1M: {
+            "price_per_prompt_1k_tokens": Decimal(0.007),
+            "price_per_sample_1k_tokens": Decimal(0.021),
         }
     },
 }
@@ -51,13 +71,17 @@ GEMINI_AI_PRICING = {
 @dataclass(kw_only=True)
 class GeminiAIModel(AIModel):
     model: str
+    max_tokens: int = C_1M
     gemini_model: genai.GenerativeModel = None
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.GEMINI
     family: str = None
 
     def __post_init__(self):
+        self.model = self.model.lower()
         if FLASH in self.model:
             self.family = FamilyModel.flash.value
+        elif PRO_1_0 in self.model:
+            self.family = FamilyModel.pro_1_0.value
         elif PRO in self.model:
             self.family = FamilyModel.pro.value
         else:
@@ -129,18 +153,6 @@ class GeminiAIModel(AIModel):
     def name(self) -> str:
         return self.model
 
-    @property
-    def price_per_prompt_1k_tokens(self) -> Decimal:
-        return GEMINI_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
-            "price_per_prompt_1k_tokens"
-        ]
-
-    @property
-    def price_per_sample_1k_tokens(self) -> Decimal:
-        return GEMINI_AI_PRICING[self.family].get(self.max_tokens, DEFAULT_PRICING)[
-            "price_per_sample_1k_tokens"
-        ]
-
     def get_params(self) -> t.Dict[str, t.Any]:
         return {
             "model": self.model,
@@ -152,3 +164,19 @@ class GeminiAIModel(AIModel):
             "model": self.model,
             "max_tokens": self.max_tokens,
         }
+    
+
+    def get_prompt_price(self, count_tokens: int) -> Decimal:
+        for key in sorted(GEMINI_AI_PRICING[self.family].keys()):
+            if count_tokens < key:
+                logger.info(f"Prompt price for {count_tokens} tokens is {GEMINI_AI_PRICING[self.family][key]['price_per_prompt_1k_tokens'] * Decimal(count_tokens) / 1000}")
+                return self._decimal(GEMINI_AI_PRICING[self.family][key]["price_per_prompt_1k_tokens"] * Decimal(count_tokens) / 1000)
+        
+        return self._decimal(self.price_per_prompt_1k_tokens * Decimal(count_tokens) / 1000)
+    
+    def get_sample_price(self, prompt_sample, count_tokens: int) -> Decimal:
+        for key in sorted(GEMINI_AI_PRICING[self.family].keys()):
+            if prompt_sample < key:
+                logger.info(f"Sample price for {count_tokens} tokens is {GEMINI_AI_PRICING[self.family][key]['price_per_prompt_1k_tokens'] * Decimal(count_tokens) / 1000}")
+                return self._decimal(GEMINI_AI_PRICING[self.family][key]["price_per_sample_1k_tokens"] * Decimal(count_tokens) / 1000)
+        return self._decimal(self.price_per_sample_1k_tokens * Decimal(count_tokens) / 1000)
