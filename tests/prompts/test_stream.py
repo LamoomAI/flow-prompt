@@ -89,7 +89,6 @@ def test_loading_prompt_from_service(fp, openai_behaviour, claude_behaviour, gem
     prompt_id = f'test-{time.time()}'
     fp.service.clear_cache()
     prompt = PipePrompt(id=prompt_id) 
-    # prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
     

@@ -16,7 +16,7 @@ def fp():
     claude_key = os.getenv("CLAUDE_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
     flow_prompt = FlowPrompt(
-        openai_key==openai_key,
+        openai_key=openai_key,
         azure_keys=azure_keys,
         claude_key=claude_key,
         gemini_key=gemini_key)
@@ -58,5 +58,5 @@ def test_creating_fp_test(fp, openai_behaviour):
     fp.service.clear_cache()
     prompt = PipePrompt(id=prompt_id) 
     prompt.add("{text}", role='user')
-    
+
     fp.call(prompt.id, context, openai_behaviour, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
