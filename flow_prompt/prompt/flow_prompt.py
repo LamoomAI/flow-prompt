@@ -18,7 +18,7 @@ from flow_prompt.prompt.user_prompt import UserPrompt
 from flow_prompt.responses import AIResponse
 from flow_prompt.services.flow_prompt import FlowPromptService
 from flow_prompt.utils import current_timestamp_ms
-
+import json
 
 logger = logging.getLogger(__name__)
 
