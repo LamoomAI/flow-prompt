@@ -44,7 +44,6 @@ class SaveWorker:
         api_token: str,
         prompt_data: t.Dict[str, t.Any],
         context: t.Dict[str, t.Any],
-        response: AIResponse,
         test_data: t.Optional[dict] = None,
     ):
-        self.queue.put((api_token, prompt_data, context, response, test_data))
+        self.queue.put((api_token, prompt_data, context, test_data))

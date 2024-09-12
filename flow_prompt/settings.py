@@ -42,7 +42,7 @@ PIPE_PROMPTS = {}
 
 @dataclass
 class Secrets:
-    API_TOKEN: str = field(default_factory=lambda: os.getenv("FLOW_PROMPT_API_TOKEN"))
+    API_TOKEN: str = os.getenv("FLOW_PROMPT_API_TOKEN")
     OPENAI_API_KEY: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
     CLAUDE_API_KEY: str = field(default_factory=lambda: os.getenv("CLAUDE_API_KEY"))
     GEMINI_API_KEY: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))

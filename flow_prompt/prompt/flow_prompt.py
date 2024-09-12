@@ -178,7 +178,6 @@ class FlowPrompt:
                         self.api_token,
                         pipe_prompt.service_dump(),
                         context,
-                        result,
                         test_data
                     )
                 return result

@@ -16,7 +16,7 @@ def fp():
     claude_key = os.getenv("CLAUDE_API_KEY")
     gemini_key = os.getenv("GEMINI_API_KEY")
     flow_prompt = FlowPrompt(
-        openai_key==openai_key,
+        openai_key=openai_key,
         azure_keys=azure_keys,
         claude_key=claude_key,
         gemini_key=gemini_key)
@@ -91,7 +91,7 @@ def test_loading_prompt_from_service(fp, openai_behaviour, claude_behaviour, gem
     prompt = PipePrompt(id=prompt_id) 
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
-    
+    print(fp)
     fp.call(prompt.id, context, openai_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     fp.call(prompt.id, context, claude_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     fp.call(prompt.id, context, gemini_behaviour, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
