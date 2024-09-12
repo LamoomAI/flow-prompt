@@ -166,6 +166,14 @@ class FlowPrompt:
                 result.metrics.latency = current_timestamp_ms() - start_time
 
                 if settings.USE_API_SERVICE and self.api_token:
+                    response = FlowPromptService.save_user_interaction(
+                        self.api_token,
+                        pipe_prompt.service_dump(),
+                        context,
+                        result,
+                        )
+                    result.id = response['log_id']
+                    
                     self.worker.add_task(
                         self.api_token,
                         pipe_prompt.service_dump(),
@@ -184,6 +192,17 @@ class FlowPrompt:
                 )
                 raise e
 
+    def add_ideal_answer(
+        self,
+        response_id: str,
+        ideal_answer: str
+    ):
+        response = FlowPromptService.update_response_ideal_answer(
+            self.api_token, response_id, ideal_answer
+        )
+        
+        return response
+    
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:
