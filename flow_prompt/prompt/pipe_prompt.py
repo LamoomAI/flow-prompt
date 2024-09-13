@@ -29,6 +29,8 @@ class PipePrompt(BasePrompt):
     def __post_init__(self):
         if not self.id:
             raise ValueError("PipePrompt id is required")
+        if self.max_tokens:
+            self.max_tokens = int(self.max_tokens)
         self._save_in_local_storage()
 
     def _save_in_local_storage(self):

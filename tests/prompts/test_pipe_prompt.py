@@ -22,7 +22,7 @@ def azure_ai_attempt():
     )
 
 def test_load_dump_pipe_prompt():
-    prompt = PipePrompt(id='hello-world')
+    prompt = PipePrompt(id='hello-world', max_tokens=100)
     prompt.add("I'm FlowPrompt, and I just broke up with my girlfriend, Python. She said I had too many 'undefined behaviors'. 🐍💔 ")
     prompt.add("""
 I'm sorry to hear about your breakup with Python. It sounds like a challenging situation, 
