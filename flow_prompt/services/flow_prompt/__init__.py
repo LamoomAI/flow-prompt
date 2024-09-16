@@ -133,7 +133,9 @@ class FlowPromptService:
             "response": {"content": response.content},
             "metrics": asdict(response.metrics),
             "request": asdict(response.prompt),
+            'timestamp': response.id.split('#')[1]
         }
+        
         logger.debug(f"Request to {url} with data: {data}")
         json_data = json.dumps(data, cls=DecimalEncoder)
 
