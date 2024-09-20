@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flow-prompt"
-version = "0.1.28"
+version = "0.1.30"
 description = ""
 authors = ["Flow-prompt Engineering Team <engineering@flow-prompt.com>"]
 readme = "README.md"
@@ -27,6 +27,7 @@ twine = "^5.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
