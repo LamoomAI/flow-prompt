@@ -6,7 +6,7 @@ import logging
 import os
 from time import sleep
 import time
-
+import dotenv
 from pytest import fixture
 from flow_prompt import FlowPrompt, behaviour, PipePrompt, AttemptToCall, AzureAIModel, C_128K
 logger = logging.getLogger(__name__)
@@ -14,9 +14,11 @@ logger = logging.getLogger(__name__)
 
 @fixture
 def flow_prompt():
+    dotenv.load_dotenv(override=True)
     azure_keys = json.loads(os.getenv("AZURE_KEYS", "{}"))
-    flow_prompt = FlowPrompt(azure_keys=azure_keys)
+    flow_prompt = FlowPrompt(azure_keys=azure_keys, api_token=os.getenv("FLOW_PROMPT_API_KEY"))
     return flow_prompt
+
 
 @fixture
 def gpt4_behaviour(flow_prompt: FlowPrompt):
@@ -47,14 +49,14 @@ def _test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     # initial version of the prompt
     prompt_id = f'test-{time.time()}'
     flow_prompt.service.clear_cache()
-    prompt = PipePrompt(id=prompt_id) 
+    prompt = PipePrompt(id=prompt_id, max_tokens=10000) 
     prompt.add("It's a system message, Hello {name}", role="system")
     prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     print(flow_prompt.call(prompt.id, context, gpt4_behaviour))
 
     # updated version of the prompt
     flow_prompt.service.clear_cache()
-    prompt = PipePrompt(id=prompt_id) 
+    prompt = PipePrompt(id=prompt_id, max_tokens=10000)
     prompt.add("It's a system message, Hello {name}", role="system")
     prompt.add('{music}', is_multiple=True, in_one_message=True, label='music')
     print(flow_prompt.call(prompt.id, context, gpt4_behaviour))
@@ -62,7 +64,7 @@ def _test_loading_prompt_from_service(flow_prompt, gpt4_behaviour):
     # call uses outdated version of prompt, should use updated version of the prompt
     sleep(2)
     flow_prompt.service.clear_cache()
-    prompt = PipePrompt(id=prompt_id)
+    prompt = PipePrompt(id=prompt_id, max_tokens=10000)
     prompt.add("It's a system message, Hello {name}", role="system")
     prompt.add('{messages}', is_multiple=True, in_one_message=True, label='messages')
     result = flow_prompt.call(prompt.id, context, gpt4_behaviour)
