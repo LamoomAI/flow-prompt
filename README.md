@@ -44,7 +44,7 @@ Mix models easily, and districute the load across models. The system will automa
 - Claude
 - Gemini
 - OpenAI (Azure OpenAI models)
-```
+```python
 def_behaviour = behaviour.AIModelsBehaviour(attempts=[
     AttemptToCall(
         ai_model=OpenAIModel(
@@ -55,7 +55,7 @@ def_behaviour = behaviour.AIModelsBehaviour(attempts=[
     ),
     AttemptToCall(
         ai_model=AzureAIModel(
-            realm='useast,
+            realm='useast',
             deployment_id='gpt-4o',
             max_tokens=128_000,
         ),
@@ -93,12 +93,12 @@ FlowPrompt(api_token='your_api_token')
 ### Add Behavious:
 - use OPENAI_BEHAVIOR
 - or add your own Behaviour, you can set max count of attempts, if you have different AI Models, if the first attempt will fail because of retryable error, the second will be called, based on the weights.
-```
+```python
 from flow_prompt import OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
 flow_behaviour = OPENAI_GPT4_0125_PREVIEW_BEHAVIOUR
 ```
 or:
-```
+```python
 from flow_prompt import behaviour
 flow_behaviour = behaviour.AIModelsBehaviour(
     attempts=[
@@ -143,6 +143,19 @@ response = flow.call(prompt.id, context, flow_behaviour, test_data={
     'behavior_name': "gemini"
     }
 )
+print(response.content)
+
+prompt.add("My name is {my_name}", role="user")
+
+# Create a prompt with iamge
+image = ImagePromptContent.load_from_url("image_url", "image_mime_type")
+promp.add(content_type=image.content_type, content=image.dump())
+
+prompt.add("Describe the picture")
+
+# Call AI model with FlowPrompt
+context = {"name": "John Doe", "my_name": "flow_prompt"}
+response = flow.call(prompt.id, context, flow_behaviour)
 print(response.content)
 ```
 - To review your created tests and score please go to https://cloud.flow-prompt.com/tests. You can update there Prompt and rerun tests for a published version, or saved version. If you will update and publish version online - library will automatically use the new updated version of the prompt. It's made for updating prompt without redeployment of the code, which is costly operation to do if it's required to update just prompt.
