@@ -227,9 +227,10 @@ class FlowPrompt:
     def calculate_budget_for_text(self, user_prompt: UserPrompt, text: str) -> int:
         if not text:
             return 0
+
         return len(user_prompt.encoding.encode(text))
 
     def get_price(
         self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int
     ) -> Decimal:
-        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(prompt_budget, sample_budget)
+        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(sample_budget, prompt_budget)

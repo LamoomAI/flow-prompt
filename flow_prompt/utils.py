@@ -12,10 +12,8 @@ def parse_bool(value: any) -> bool:
         return value
     return str(value).lower() in ("true", "1", "yes")
 
-
 def current_timestamp_ms():
     return int(time() * 1000)
-
 
 def resolve(prompt: str, context: t.Dict[str, str]) -> str:
     if not prompt or "{" not in prompt:
@@ -24,7 +22,6 @@ def resolve(prompt: str, context: t.Dict[str, str]) -> str:
     for key in context:
         prompt = prompt.replace(f"{{{key}}}", str(context[key]))
     return prompt
-
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):

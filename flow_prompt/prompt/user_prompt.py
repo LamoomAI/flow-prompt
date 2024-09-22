@@ -243,15 +243,19 @@ class UserPrompt(BasePrompt):
         return self.model_max_tokens - self.min_sample_tokens - self.safe_gap_tokens
 
     def calculate_budget_for_value(self, value: ChatMessage) -> int:
-        content = len(self.encoding.encode(value.content))
+        if value.content_type == "text":
+            content = len(self.encoding.encode(value.content))
+        elif value.content_type == "image":
+            content = len(self.encoding.encode(value.content["image"]))
+        else:
+            content = 0
+
         role = len(self.encoding.encode(value.role))
         tool_calls = len(self.encoding.encode(value.tool_calls.get("name", "")))
         arguments = len(self.encoding.encode(value.tool_calls.get("arguments", "")))
         return content + role + tool_calls + arguments + settings.SAFE_GAP_PER_MSG
 
     def is_value_not_empty(self, value: ChatMessage) -> bool:
-        if not value:
-            return False
         if value.content is None:
             return False
         return True
@@ -268,6 +272,7 @@ class UserPrompt(BasePrompt):
             if not self.is_value_not_empty(value):
                 logger.debug(f"[{self.task_name}]: is_value_not_empty failed {value}")
                 continue
+
             budget += self.calculate_budget_for_value(value)
             result.append(value)
             if value.ref_name and value.ref_value:

@@ -1,27 +1,35 @@
+from dataclasses import dataclass
 import logging
 import typing as t
 import uuid
-from dataclasses import dataclass
 
 from flow_prompt.exceptions import ValueIsNotResolvedError
 from flow_prompt.utils import resolve
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class ValuesCost:
     values: t.List[str]
     cost: int
 
-
 class ChatMessage:
     role: str
-    content: str
+    content_type: str
+    content: t.Any
     name: t.Optional[str] = None
-    tool_calls: t.Dict[str, str]
+    tool_calls: t.Dict[str, str] = {}
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
+
+    def __init__(self, **kwargs):
+        self.role = kwargs.get("role", "user")
+        self.content_type = kwargs.get("type", "text")
+        self.content = kwargs["content"]
+        self.name = kwargs.get("name")
+        self.tool_calls = kwargs.get("tool_calls") or {}
+        self.ref_name = kwargs.get("ref_name")
+        self.ref_value = kwargs.get("ref_value")
 
     def is_not_empty(self):
         return bool(self.content or self.tool_calls)
@@ -32,31 +40,34 @@ class ChatMessage:
     def not_tool_calls(self):
         return not (self.tool_calls)
 
-    def __init__(self, **kwargs):
-        self.role = kwargs.get("role", "user")
-        self.content = kwargs["content"]
-        self.name = kwargs.get("name")
-        self.tool_calls = kwargs.get("tool_calls") or {}
-
     def to_dict(self):
         result = {
             "role": self.role,
+            "type": self.content_type,
             "content": self.content,
         }
+
         if self.name:
             result["name"] = self.name
+
         if self.tool_calls:
             result["tool_calls"] = self.tool_calls
+
+        if self.ref_name:
+            result["ref_name"] = self.ref_name
+
+        if self.ref_name:
+            result["ref_value"] = self.ref_value
+
         return result
 
-
-# can be multiple value
 @dataclass(kw_only=True)
 class ChatsEntity:
-    content: str = ""
+    content_type: str = "text"
+    content: t.Any = None
     role: str = "user"
     name: t.Optional[str] = None
-    tool_calls: t.Dict[str, str] = None
+    tool_calls: t.Optional[t.Dict[str, str]] = None
     priority: int = 0
     required: bool = False
     is_multiple: bool = False
@@ -64,10 +75,12 @@ class ChatsEntity:
     add_in_reverse_order: bool = False
     in_one_message: bool = False
     continue_if_doesnt_fit: bool = False
+
     add_if_fitted_labels: t.List[str] = None
     label: t.Optional[str] = None
     presentation: t.Optional[str] = None
     last_words: t.Optional[str] = None
+
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
 
@@ -75,6 +88,22 @@ class ChatsEntity:
         self._uuid = uuid.uuid4().hex
 
     def resolve(self, context: t.Dict[str, t.Any]) -> t.List[ChatMessage]:
+        if self.content_type != "text":
+            return [
+                ChatMessage(
+                    type = self.content_type,
+                    name=self.name,
+                    role=self.role,
+                    content=self.content,
+                    tool_calls=self.tool_calls,
+                    ref_name=self.ref_name,
+                    ref_value=self.ref_value,
+                )
+            ]
+
+        if self.content == None:
+            self.content = ""
+
         result = []
         content = self.content
         if self.is_multiple:
@@ -83,9 +112,10 @@ class ChatsEntity:
             values = context.get(prompt_value, [])
             if not values:
                 return []
+
             if not isinstance(values, list):
                 raise ValueIsNotResolvedError(
-                    f"Invalid value {values } for prompt {content}. Should be multiple"
+                    f"Invalid value {values} for prompt {content}. Should be multiple"
                 )
             else:
                 # verify that values are json list of ChatMessage
@@ -98,13 +128,16 @@ class ChatsEntity:
                     raise ValueIsNotResolvedError(
                         f"Invalid value { values } for prompt {content}. Error: {e}"
                     )
+
             return result
 
         content = resolve(content, context)
         if not content:
             return []
+
         return [
             ChatMessage(
+                type=self.content_type,
                 name=self.name,
                 role=self.role,
                 content=content,
@@ -126,6 +159,7 @@ class ChatsEntity:
 
     def dump(self):
         data = {
+            "type": self.content_type,
             "content": self.content,
             "role": self.role,
             "name": self.name,
@@ -152,6 +186,7 @@ class ChatsEntity:
     @classmethod
     def load(cls, data):
         return cls(
+            content_type=data.get("type"),
             content=data.get("content"),
             role=data.get("role"),
             name=data.get("name"),

@@ -143,6 +143,28 @@ class OpenAIModel(AIModel):
             "provider": self.provider.value,
         }
 
+    def prepare_message(self, message: t.Dict) -> t.Dict:
+        content = message["content"] or {}
+        
+        msg: t.Dict = {}
+
+        msg["role"] = message["role"]
+        if message["type"] == "text":
+            msg["content"] = [{
+                "type": "text",
+                "text": content,
+            }]
+
+        if message["type"] == "image":
+            msg["content"] = [{ 
+                "type": "image_url", 
+                "image_url": {
+                    "url": f"data:{content["mime_type"] or "image/jpeg"};base64,{content["image"]}"
+                        },
+                }]
+
+        return msg
+
     def call(
         self,
         messages,
@@ -192,9 +214,12 @@ class OpenAIModel(AIModel):
     ) -> OpenAIResponse:
         max_tokens = min(max_tokens, self.max_tokens, self.max_sample_budget)
         common_args = get_common_args(max_tokens)
+
+        prepared_messages = [self.prepare_message(message) for message in messages]
+
         kwargs = {
             **{
-                "messages": messages,
+                "messages": prepared_messages,
             },
             **common_args,
             **self.get_params(),
