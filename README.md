@@ -147,7 +147,7 @@ print(response.content)
 
 prompt.add("My name is {my_name}", role="user")
 
-# Create a prompt with iamge
+# Create a prompt with image
 image = ImagePromptContent.load_from_url("image_url", "image_mime_type")
 promp.add(content_type=image.content_type, content=image.dump())
 

@@ -144,24 +144,24 @@ class OpenAIModel(AIModel):
         }
 
     def prepare_message(self, message: t.Dict) -> t.Dict:
-        content = message["content"] or {}
-        
         msg: t.Dict = {}
 
+        content = message["content"]
         msg["role"] = message["role"]
         if message["type"] == "text":
             msg["content"] = [{
                 "type": "text",
                 "text": content,
             }]
-
-        if message["type"] == "image":
+        elif message["type"] == "image":
             msg["content"] = [{ 
                 "type": "image_url", 
                 "image_url": {
-                    "url": f"data:{content["mime_type"] or "image/jpeg"};base64,{content["image"]}"
+                    "url": f"data:{content["mime_type"]};{content["encoding"]},{content["image_base64"]}"
                         },
                 }]
+        elif message["type"] == "file":
+            msg["content"] = [{}]
 
         return msg
 

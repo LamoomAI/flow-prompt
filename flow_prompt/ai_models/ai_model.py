@@ -41,7 +41,7 @@ class AIModel:
     def get_prompt_price(self, count_tokens: int) -> Decimal:
         return self._decimal(self.price_per_prompt_1k_tokens * Decimal(count_tokens) / 1000)
     
-    def get_sample_price(self, sample_price, count_tokens: int) -> Decimal:
+    def get_sample_price(self, prompt_sample, count_tokens: int) -> Decimal:
         return self._decimal(self.price_per_sample_1k_tokens * Decimal(count_tokens) / 1000)
 
     def get_params(self) -> t.Dict[str, t.Any]:

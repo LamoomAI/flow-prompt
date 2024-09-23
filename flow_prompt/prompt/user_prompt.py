@@ -63,7 +63,7 @@ class UserPrompt(BasePrompt):
     def __post_init__(self):
         self.encoding = tiktoken.get_encoding(self.tiktoken_encoding)
 
-    def resolve(self, context: t.Dict) -> CallingMessages:
+    def resolve(self, context: t.Dict, images: t.Dict[str, t.Any], files: t.Dict[str, t.Any]) -> CallingMessages:
         pipe = {}
         prompt_budget = 0
         ordered_pipe = dict((value, i) for i, value in enumerate(self.pipe))
@@ -87,8 +87,9 @@ class UserPrompt(BasePrompt):
                         self.encoding.encode(chat_value.last_words)
                     )
 
-                values = chat_value.get_values(context)
+                values = chat_value.get_values(context, images, files)
                 logger.debug(f"Got values for {chat_value}: {values}")
+
                 if not values:
                     continue
                 if chat_value.in_one_message:
@@ -105,7 +106,7 @@ class UserPrompt(BasePrompt):
                     messages_budget, messages = self.add_values(values, state)
                     if chat_value.label:
                         state.fully_fitted_pipitas.add(chat_value.label)
-
+                
                 if not messages:
                     logger.debug(f"messages is empty for {chat_value}")
                     continue
@@ -117,10 +118,17 @@ class UserPrompt(BasePrompt):
                 logger.debug(f"adding {len(messages)} messages for {chat_value}")
                 state.left_budget -= messages_budget
                 prompt_budget += messages_budget
+
                 if chat_value.presentation:
-                    messages[0].content = chat_value.presentation + messages[0].content
+                    if messages[0].content_type == "text":
+                        messages[0].content = chat_value.presentation + messages[0].content
+                    else:
+                        messages = [ChatMessage(content=chat_value.presentation)] + messages
                 if chat_value.last_words:
-                    messages[-1].content += chat_value.last_words
+                    if messages[-1].content_type == "text":
+                        messages[-1].content += chat_value.last_words
+                    else:
+                        messages += [ChatMessage(content=chat_value.last_words)]
                 pipe[chat_value._uuid] = messages
                 continue
 
@@ -137,6 +145,7 @@ class UserPrompt(BasePrompt):
             max_sample_budget = min(
                 self.reserved_tokens_budget_for_sampling, left_budget
             )
+
         return CallingMessages(
             references=state.references,
             messages=flat_list,
@@ -150,7 +159,7 @@ class UserPrompt(BasePrompt):
         values: list[ChatMessage],
         chat_value: ChatsEntity,
         state: State,
-    ):
+    ) -> t.Tuple[int, t.List[ChatMessage]]:
         add_in_reverse_order = chat_value.add_in_reverse_order
         if add_in_reverse_order:
             values = values[::-1]
@@ -197,9 +206,9 @@ class UserPrompt(BasePrompt):
         values: list[ChatMessage],
         chat_value: ChatsEntity,
         state: State,
-    ) -> CallingMessages:
+    ) -> t.Tuple[int, t.List[ChatMessage]]:
         one_message_budget = 0
-        one_message = None
+        one_message: t.List[ChatMessage] = []
         is_fully_fitted = True
         if not values:
             logger.debug(
@@ -228,26 +237,33 @@ class UserPrompt(BasePrompt):
                 break
 
             one_message_budget += one_budget
-            if one_message:
-                one_message.content += "\n" + value.content
+            if len(one_message) > 0:
+                if one_message[-1].content_type == "text" and value.content_type == "text":
+                    one_message[-1].content += "\n" + value.content
+                else:
+                    one_message.append(value)
             else:
-                one_message = value
+                one_message.append(value)
+
             if value.ref_name and value.ref_value:
                 state.references[value.ref_name].append(value.ref_value)
         if is_fully_fitted and chat_value.label:
             state.fully_fitted_pipitas.add(chat_value.label)
-        return one_message_budget, [] if not one_message else [one_message]
+        return one_message_budget, one_message
 
     @property
     def left_budget(self) -> int:
         return self.model_max_tokens - self.min_sample_tokens - self.safe_gap_tokens
 
     def calculate_budget_for_value(self, value: ChatMessage) -> int:
+        content = 0
         if value.content_type == "text":
             content = len(self.encoding.encode(value.content))
         elif value.content_type == "image":
-            content = len(self.encoding.encode(value.content["image"]))
-        else:
+            # TODO: add tokens calculation for image
+            content = 0
+        elif value.content_type == "file":
+            # TODO: add tokens calculation for file
             content = 0
 
         role = len(self.encoding.encode(value.role))
@@ -277,6 +293,7 @@ class UserPrompt(BasePrompt):
             result.append(value)
             if value.ref_name and value.ref_value:
                 state.references[value.ref_name].append(value.ref_value)
+
         return budget, result
 
     def __str__(self) -> str:

@@ -89,18 +89,18 @@ class GeminiAIModel(AIModel):
             self.family = FamilyModel.flash.value
 
     def prepare_message(self, message: t.Dict) -> t.Dict:
-        content = message["content"] or {}
-        
         msg: t.Dict = {}
 
+        content = message["content"]
         if message["type"] == "text":
             msg["content"] = content
-
-        if message["type"] == "image":
+        elif message["type"] == "image":
             msg["content"] = {
                 "mime_type": content["mime_type"],
-                "data": content["image"],
+                "data": content["image_base64"],
             }
+        elif message["type"] == "file":
+            msg["content"] = {}
 
         return msg
 

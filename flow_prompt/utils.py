@@ -3,6 +3,7 @@ import json
 import logging
 import typing as t
 from time import time
+import magic
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,9 @@ def resolve(prompt: str, context: t.Dict[str, str]) -> str:
     for key in context:
         prompt = prompt.replace(f"{{{key}}}", str(context[key]))
     return prompt
+
+def parse_mime_type(name: str) -> str:
+    return magic.from_file(name, mime=True)
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):

@@ -1,94 +1,11 @@
-from abc import abstractmethod
-import base64
 import logging
 import typing as t
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-import httpx
-
 from flow_prompt.prompt.chat import ChatsEntity
 
 logger = logging.getLogger(__name__)
-
-@dataclass(kw_only=True)
-class PromptContent:
-    _type: str
-
-    @property
-    def content_type(self) -> str:
-        return self._type
-
-    @abstractmethod
-    def dump(self) -> t.Dict: 
-        pass
-
-@dataclass(kw_only=True)
-class TextPromptContent(PromptContent):
-    content: str = ""
-    _type: str = "text"
-
-    def dump(self) -> t.Dict:
-        return {
-            "text": self.content,
-        }
-
-
-@dataclass(kw_only=True)
-class ImagePromptContent(PromptContent):
-    base64_image: str = ""
-    mime_type: str = "image/jpeg"
-    _type: str = "image"
-
-    def dump(self) -> t.Dict:
-        return {
-            "image": self.base64_image,
-            "mime_type": self.mime_type,
-            "encoding": "base64",
-        } 
-
-    @classmethod
-    def load_from_path(cls, path: str, mime_type: str):
-        try:
-            with open(path) as f:
-                return cls(
-                    base64_image=base64.b64encode(bytes(f.read(), "utf-8")).decode("utf-8"),
-                    mime_type=mime_type,
-                )
-        except Exception as e:
-            logger.error(f"Failed to load image from path {path}")
-            raise e
-
-    @classmethod
-    def load_from_url(cls, url: str, mime_type: str):
-        try: 
-            image_content = httpx.get(url).content
-            return cls(
-                base64_image=base64.b64encode(image_content).decode("utf-8"),
-                mime_type=mime_type,
-            )
-        except Exception as e:
-            logger.error(f"Failed to load image from url {url}")
-            raise e
-
-@dataclass(kw_only=True)
-class FilePromptContent(PromptContent):
-    mime_type: str = "text/plain"
-    _type: str = "file"
-
-    def dump(self) -> t.Dict:
-        return {
-            "mime_type": self.mime_type,
-        } 
-
-    @classmethod
-    def load_from_path(cls, path: str, mime_type: str):
-        raise NotImplementedError
-
-    @classmethod
-    def load_from_url(cls, url: str, mime_type: str):
-        raise NotImplementedError
-
 
 @dataclass(kw_only=True)
 class BasePrompt:
@@ -109,8 +26,8 @@ class BasePrompt:
 
     def add(
         self,
-        content: t.Any,
-        content_type: str = "text",
+        content: t.Any = None,
+        content_type="text",
         role: str = "user",
         name: t.Optional[str] = None,
         tool_calls: t.Dict[str, str] = None,
@@ -125,6 +42,8 @@ class BasePrompt:
         label: t.Optional[str] = None,
         presentation: t.Optional[str] = None,
         last_words: t.Optional[str] = None,
+        ref_image: t.Optional[str] = None,
+        ref_file: t.Optional[str] = None,
     ):
 
         chat_value = ChatsEntity(
@@ -144,6 +63,8 @@ class BasePrompt:
             label=label,
             presentation=presentation,
             last_words=last_words,
+            ref_image=ref_image,
+            ref_file=ref_file,
         )
         self.chats.append(chat_value)
         self.priorities[priority].append(chat_value)

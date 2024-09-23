@@ -99,26 +99,26 @@ class ClaudeAIModel(AIModel):
         return result
 
     def prepare_message(self, message: t.Dict) -> t.Dict:
-        content = message["content"] or {}
-
         msg: t.Dict = {}
 
+        content = message["content"]
         msg["role"] = message["role"]
         if message["type"] == "text":
             msg["content"] = [{
                 "type": "text",
                 "text": content,
             }]
-
-        if message["type"] == "image":
+        elif message["type"] == "image":
             msg["content"] = [{
                 "type": "image",
                 "source": {
-                    "type": "base64",
+                    "type": content["encoding"],
                     "media_type": content["mime_type"],
-                    "data": content["image"],
+                    "data": content["image_base64"],
                 },
             }]
+        elif message["type"] == "file":
+            msg["content"] = [{}]
 
         return msg
 

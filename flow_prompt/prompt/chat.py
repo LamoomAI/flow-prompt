@@ -1,17 +1,132 @@
+from abc import abstractmethod
+import base64
 from dataclasses import dataclass
 import logging
 import typing as t
 import uuid
+import httpx
 
 from flow_prompt.exceptions import ValueIsNotResolvedError
 from flow_prompt.utils import resolve
 
 logger = logging.getLogger(__name__)
 
-@dataclass
-class ValuesCost:
-    values: t.List[str]
-    cost: int
+@dataclass(kw_only=True)
+class PromptContent:
+    _type: str
+
+    @property
+    def content_type(self) -> str:
+        return self._type
+
+    @abstractmethod
+    def dump(self) -> t.Dict: 
+        pass
+
+@dataclass(kw_only=True)
+class TextPromptContent(PromptContent):
+    _type: str = "text"
+    content: str = ""
+
+    def dump(self) -> t.Dict:
+        return {
+            "text": self.content,
+        }
+
+
+@dataclass(kw_only=True)
+class ImagePromptContent(PromptContent):
+    _type: str = "image"
+    _mime_type: str
+    _image_base64: str 
+    _image_content: bytes 
+
+    def dump(self) -> t.Dict:
+        return {
+            "image_base64": self._image_base64,
+            "image_content": self._image_content,
+            "mime_type": self._mime_type,
+            "encoding": "base64",
+        } 
+
+    @classmethod
+    def load_from_base64_string(cls, base64_content: str, mime_type: str):
+        try: 
+            content = base64.b64decode(base64_content)
+            return cls(
+                _image_content=content,
+                _image_base64=base64_content,
+                _mime_type=mime_type,
+            )
+        except Exception as e:
+            logger.error(f"Failed to load image from base64 string {base64_content}")
+            raise e
+
+    @classmethod
+    def load_from_path(cls, path: str, mime_type: str):
+
+        try:
+            with open(path, "rb") as f:
+                content = f.read()
+                return cls(
+                    _image_content=content,
+                    _image_base64=base64.b64encode(content).decode("utf-8"),
+                    _mime_type=mime_type,
+                )
+        except Exception as e:
+            logger.error(f"Failed to load image from path {path}")
+            raise e
+
+    @classmethod
+    def load_from_url(cls, url: str, mime_type: str):
+        try: 
+            content = httpx.get(url).content
+            return cls(
+                _image_content=content,
+                _image_base64=base64.b64encode(content).decode("utf-8"),
+                _mime_type=mime_type,
+            )
+        except Exception as e:
+            logger.error(f"Failed to load image from url {url}")
+            raise e
+
+
+@dataclass(kw_only=True)
+class FilePromptContent(PromptContent):
+    _type: str = "file"
+    _mime_type: str 
+    _file_content: bytes
+
+    def dump(self) -> t.Dict:
+        return {
+            "mime_type": self._mime_type,
+        } 
+
+    @classmethod
+    def load_from_path(cls, path: str, mime_type: str):
+        try: 
+            with open(path, "rb") as f:
+                content=f.read()
+                return cls(
+                    _mime_type=mime_type,
+                    _file_content=content,
+                )
+        except Exception as e:
+            logger.error(f"Failed to load file from path {path}")
+            raise e
+
+    @classmethod
+    def load_from_url(cls, url: str, mime_type: str):
+        try: 
+            content = httpx.get(url).content
+            return cls(
+                _mime_type=mime_type,
+                _file_content=content,
+            )
+        except Exception as e:
+            logger.error(f"Failed to load file from url {url}")
+            raise e
+
 
 class ChatMessage:
     role: str
@@ -24,7 +139,7 @@ class ChatMessage:
 
     def __init__(self, **kwargs):
         self.role = kwargs.get("role", "user")
-        self.content_type = kwargs.get("type", "text")
+        self.content_type = kwargs.get("content_type", "text")
         self.content = kwargs["content"]
         self.name = kwargs.get("name")
         self.tool_calls = kwargs.get("tool_calls") or {}
@@ -83,29 +198,65 @@ class ChatsEntity:
 
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
+    ref_image: t.Optional[str] = None
+    ref_file: t.Optional[str] = None
 
     def __post_init__(self):
         self._uuid = uuid.uuid4().hex
 
-    def resolve(self, context: t.Dict[str, t.Any]) -> t.List[ChatMessage]:
-        if self.content_type != "text":
+    def resolve(self, context: t.Dict[str, t.Any], images: t.Optional[t.Dict[str, t.Any]] = None, 
+                files: t.Optional[t.Dict[str, t.Any]] = None) -> t.List[ChatMessage]:
+        if self.content_type == "image":
+            if self.ref_image is None:
+                raise ValueIsNotResolvedError(
+                    f"Could not resolve image. Image reference is not found"
+                )
+
+            if images is None or not images[self.ref_image]:
+                raise ValueIsNotResolvedError(
+                    f"Could not find image reference. {self.ref_image} should exist"
+                )
+
+            content = images[self.ref_image]
             return [
-                ChatMessage(
-                    type = self.content_type,
-                    name=self.name,
-                    role=self.role,
-                    content=self.content,
-                    tool_calls=self.tool_calls,
-                    ref_name=self.ref_name,
-                    ref_value=self.ref_value,
+             ChatMessage(
+                name=self.name,
+                role=self.role,
+                content_type="image",
+                content=content.dump(),
+                tool_calls=self.tool_calls,
+                ref_name=self.ref_name,
+                ref_value=self.ref_value,
                 )
             ]
 
-        if self.content == None:
-            self.content = ""
+        if self.content_type == "file":
+            if self.ref_file is None:
+                raise ValueIsNotResolvedError(
+                    f"Could resolve file. File reference not found"
+                )
+
+            if files is None or not files[self.ref_file]:
+                raise ValueIsNotResolvedError(
+                    f"Could not find file reference. {self.ref_file} should exist"
+                )
+
+            content = files[self.ref_file]
+            return [
+             ChatMessage(
+                name=self.name,
+                role=self.role,
+                content_type="file",
+                content=content.dump(),
+                tool_calls=self.tool_calls,
+                ref_name=self.ref_name,
+                ref_value=self.ref_value,
+                )
+            ]
 
         result = []
         content = self.content
+
         if self.is_multiple:
             # should be just one value like {messages} in prompt
             prompt_value = content.strip().replace("{", "").replace("}", "").strip()
@@ -126,20 +277,21 @@ class ChatsEntity:
                     ]
                 except TypeError as e:
                     raise ValueIsNotResolvedError(
-                        f"Invalid value { values } for prompt {content}. Error: {e}"
+                        f"Invalid value {values} for prompt {content}. Error: {e}"
                     )
 
             return result
+
 
         content = resolve(content, context)
         if not content:
             return []
 
         return [
-            ChatMessage(
-                type=self.content_type,
+             ChatMessage(
                 name=self.name,
                 role=self.role,
+                content_type="text",
                 content=content,
                 tool_calls=self.tool_calls,
                 ref_name=self.ref_name,
@@ -147,9 +299,10 @@ class ChatsEntity:
             )
         ]
 
-    def get_values(self, context: t.Dict[str, str]) -> t.List[ChatMessage]:
+    def get_values(self, context: t.Dict[str, t.Any], images: t.Optional[t.Dict[str, t.Any]] = None, 
+                   files: t.Optional[t.Dict[str, t.Any]] = None) -> t.List[ChatMessage]:
         try:
-            values = self.resolve(context)
+            values = self.resolve(context, images, files)
         except Exception as e:
             logger.error(
                 f"Error resolving prompt {self.content}, error: {e}", exc_info=True
@@ -159,7 +312,7 @@ class ChatsEntity:
 
     def dump(self):
         data = {
-            "type": self.content_type,
+            "content_type": self.content_type,
             "content": self.content,
             "role": self.role,
             "name": self.name,
@@ -177,6 +330,8 @@ class ChatsEntity:
             "last_words": self.last_words,
             "ref_name": self.ref_name,
             "ref_value": self.ref_value,
+            "ref_image": self.ref_image,
+            "ref_file": self.ref_file,
         }
         for k, v in list(data.items()):
             if v is None:
@@ -186,7 +341,7 @@ class ChatsEntity:
     @classmethod
     def load(cls, data):
         return cls(
-            content_type=data.get("type"),
+            content_type=data.get("content_type"),
             content=data.get("content"),
             role=data.get("role"),
             name=data.get("name"),
@@ -204,4 +359,6 @@ class ChatsEntity:
             last_words=data.get("last_words"),
             ref_name=data.get("ref_name"),
             ref_value=data.get("ref_value"),
+            ref_image=data.get("ref_image"),
+            ref_file=data.get("ref_file"),
         )
