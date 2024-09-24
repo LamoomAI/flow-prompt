@@ -3,6 +3,7 @@ import typing as t
 from dataclasses import dataclass
 from decimal import Decimal
 import requests
+import time
 from flow_prompt.settings import FLOW_PROMPT_API_URI
 from flow_prompt import Secrets, settings
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER
@@ -166,6 +167,9 @@ class FlowPrompt:
                 result.metrics.latency = current_timestamp_ms() - start_time
 
                 if settings.USE_API_SERVICE and self.api_token:
+                    timestamp = int(time.time() * 1000)
+                    result.id = f"{prompt_id}#{timestamp}"
+                    
                     self.worker.add_task(
                         self.api_token,
                         pipe_prompt.service_dump(),
@@ -184,6 +188,17 @@ class FlowPrompt:
                 )
                 raise e
 
+    def add_ideal_answer(
+        self,
+        response_id: str,
+        ideal_answer: str
+    ):
+        response = FlowPromptService.update_response_ideal_answer(
+            self.api_token, response_id, ideal_answer
+        )
+        
+        return response
+    
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:

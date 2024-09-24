@@ -133,7 +133,9 @@ class FlowPromptService:
             "response": {"content": response.content},
             "metrics": asdict(response.metrics),
             "request": asdict(response.prompt),
+            'timestamp': response.id.split('#')[1]
         }
+        
         logger.debug(f"Request to {url} with data: {data}")
         json_data = json.dumps(data, cls=DecimalEncoder)
 
@@ -142,6 +144,31 @@ class FlowPromptService:
             return response.json()
         else:
             logger.error(response)
+          
+    @classmethod  
+    def update_response_ideal_answer(
+        cls,
+        api_token: str,
+        log_id: str,
+        ideal_answer: str
+    ):
+        url = f"{cls.url}lib/logs"
+        headers = {"Authorization": f"Token {api_token}"}
+        data = {
+            "log_id": log_id,
+            "ideal_answer": ideal_answer
+        }
+        
+        logger.debug(f"Request to {url} with data: {data}")
+        json_data = json.dumps(data, cls=DecimalEncoder)
+
+        response = requests.put(url, headers=headers, data=json_data)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logger.error(response)
+            return response
 
     @classmethod
     def create_test_with_ideal_answer(
