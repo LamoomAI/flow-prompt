@@ -1,21 +1,19 @@
-from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
-import logging
-
-from flow_prompt.ai_models.constants import C_1M, C_128K
-from flow_prompt.responses import AIResponse
+from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
-
+import logging
 import typing as t
-from dataclasses import dataclass
 
-from flow_prompt.ai_models.gemini.responses import GeminiAIResponse
-
-from flow_prompt.ai_models.utils import get_common_args
-from openai.types.chat import ChatCompletionMessage as Message
-from flow_prompt.responses import Prompt
-from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 import google.generativeai as genai
+from openai.types.chat import ChatCompletionMessage as Message
+
+from flow_prompt.ai_models.ai_model import AIModel, AI_MODELS_PROVIDER
+from flow_prompt.ai_models.constants import C_128K, C_1M
+from flow_prompt.ai_models.gemini.responses import GeminiAIResponse
+from flow_prompt.ai_models.utils import get_common_args
+from flow_prompt.exceptions import ConnectionLostError, RetryableCustomError
+from flow_prompt.responses import AIResponse
+from flow_prompt.responses import Prompt
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +88,22 @@ class GeminiAIModel(AIModel):
             )
             self.family = FamilyModel.flash.value
 
+    def prepare_message(self, message: t.Dict) -> t.Dict:
+        msg: t.Dict = {}
+
+        content = message["content"]
+        if message["type"] == "text":
+            msg["content"] = content
+        elif message["type"] == "image":
+            msg["content"] = {
+                "mime_type": content["mime_type"],
+                "data": content["image_base64"],
+            }
+        elif message["type"] == "file":
+            msg["content"] = {}
+
+        return msg
+
     def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
         genai.configure(api_key=client_secrets["api_key"])
         self.gemini_model = genai.GenerativeModel(self.model)
@@ -114,7 +128,7 @@ class GeminiAIModel(AIModel):
         stream_params = kwargs.get("stream_params")
 
         # Parse only prompt content due to gemini call specifics
-        prompt = '\n\n'.join([obj["content"] for obj in messages])
+        prompt = [self.prepare_message(obj)["content"] for obj in messages]
 
         content = ""
 

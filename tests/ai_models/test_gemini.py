@@ -7,7 +7,6 @@ from flow_prompt.exceptions import RetryableCustomError, ConnectionLostError
 from flow_prompt.responses import AIResponse, Prompt
 from openai.types.chat import ChatCompletionMessage as Message
 
-
 def test_gemini_ai_model_initialization():
     model_name = "gemini-1.5-flash"
     model = GeminiAIModel(model=model_name)
@@ -23,6 +22,17 @@ def test_gemini_ai_model_initialization_unknown_family():
     assert model.model == model_name
     assert model.family == FamilyModel.flash.value  # Default value as set in the class
 
+def test_gemini_ai_model_prepare_text_message():
+    model_name = "gemini-1.5-flash"
+    model = GeminiAIModel(model=model_name)
+
+    assert model.prepare_message({"type": "text", "content": "Hello"})["content"] == "Hello"
+
+def test_gemini_ai_model_prepare_image_message():
+    model_name = "gemini-1.5-flash"
+    model = GeminiAIModel(model=model_name)
+
+    assert model.prepare_message({"type": "image", "content": {"image": "base64_str", "mime_type":"image/jpeg"}})["content"] == {"mime_type": "image/jpeg", "data": "base64_str"}
 
 @patch("flow_prompt.ai_models.gemini.gemini_model.genai.GenerativeModel")
 def test_gemini_ai_model_call(mock_gen_model):
@@ -33,7 +43,7 @@ def test_gemini_ai_model_call(mock_gen_model):
     model_name = "gemini-1.5-pro"
     model = GeminiAIModel(model=model_name)
 
-    messages = [{"content": "Hello", "role": "user"}]
+    messages = [{"type": "text", "content": "Hello", "role": "user"}]
     max_tokens = 100
     client_secrets = {"api_key": "test_api_key"}
 
@@ -52,7 +62,7 @@ def test_gemini_ai_model_call_with_stream(mock_gen_model):
     model_name = "gemini-1.5-pro"
     model = GeminiAIModel(model=model_name)
 
-    messages = [{"content": "Hello", "role": "user"}]
+    messages = [{"type": "text", "content": "Hello", "role": "user"}]
     max_tokens = 100
     client_secrets = {"api_key": "test_api_key"}
 
@@ -118,7 +128,7 @@ def test_gemini_ai_model_call_with_connection_lost(mock_gen_model):
     model_name = "gemini-1.5-pro"
     model = GeminiAIModel(model=model_name)
 
-    messages = [{"content": "Hello", "role": "user"}]
+    messages = [{"type": "text", "content": "Hello", "role": "user"}]
     max_tokens = 100
     client_secrets = {"api_key": "test_api_key"}
 
@@ -145,7 +155,7 @@ def test_gemini_ai_model_call_with_retryable_error(mock_gen_model):
     model_name = "gemini-1.5-pro"
     model = GeminiAIModel(model=model_name)
 
-    messages = [{"content": "Hello", "role": "user"}]
+    messages = [{"type": "text", "content": "Hello", "role": "user"}]
     max_tokens = 100
     client_secrets = {"api_key": "test_api_key"}
 

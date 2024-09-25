@@ -2,7 +2,6 @@ from decimal import Decimal
 import json
 import logging
 from dataclasses import dataclass, field
-import typing as t
 
 logger = logging.getLogger(__name__)
 

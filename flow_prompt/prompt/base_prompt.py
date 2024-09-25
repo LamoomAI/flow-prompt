@@ -7,7 +7,6 @@ from flow_prompt.prompt.chat import ChatsEntity
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass(kw_only=True)
 class BasePrompt:
     priorities: t.Dict[int, t.List[ChatsEntity]] = field(
@@ -27,7 +26,8 @@ class BasePrompt:
 
     def add(
         self,
-        content: str = "",
+        content: t.Any = None,
+        content_type="text",
         role: str = "user",
         name: t.Optional[str] = None,
         tool_calls: t.Dict[str, str] = None,
@@ -42,13 +42,13 @@ class BasePrompt:
         label: t.Optional[str] = None,
         presentation: t.Optional[str] = None,
         last_words: t.Optional[str] = None,
+        ref_image: t.Optional[str] = None,
+        ref_file: t.Optional[str] = None,
     ):
-        if not isinstance(content, str):
-            logger.warning(f"content is not string: {content}, assignig str of it")
-            content = str(content)
 
         chat_value = ChatsEntity(
             role=role,
+            content_type=content_type,
             content=(content or ""),
             name=name,
             tool_calls=tool_calls,
@@ -63,6 +63,8 @@ class BasePrompt:
             label=label,
             presentation=presentation,
             last_words=last_words,
+            ref_image=ref_image,
+            ref_file=ref_file,
         )
         self.chats.append(chat_value)
         self.priorities[priority].append(chat_value)
