@@ -23,6 +23,7 @@ class FlowPromptServiceResponse:
 
 class FlowPromptService:
     url: str = settings.FLOW_PROMPT_API_URI
+    elytimes_ai_url: str = settings.ELYTIMES_AI_API_URI
     cached_prompts = {}
 
     def get_actual_prompt(
@@ -194,3 +195,42 @@ class FlowPromptService:
         json_data = json.dumps(data)
         requests.post(url, headers=headers, data=json_data)
         logger.info(f"Created Ci/CD for prompt {prompt_data['prompt_id']}")
+
+    @classmethod
+    def update_user_overview(
+        cls,
+        user_id: str,
+        overview: str
+    ):
+        url = f"{cls.elytimes_ai_url}lib/users"
+        data = {
+            "user_id": user_id,
+            "overview": overview,
+        }
+        json_data = json.dumps(data)
+        logger.debug(f"Request to {url} with data: {data}")
+        response = requests.post(url, headers={}, data=json_data)
+        logger.info(f"Update overview of the user: ${user_id}")
+        
+        return response
+    
+    @classmethod
+    def get_file_names(
+        cls, 
+        prefix: str,
+        user_id: str
+    ):
+        url = f"{cls.url}lib/elytimes?getFileNames&prefix={prefix}&user_id={user_id}"
+
+        logger.debug(f"Request to {url}")
+        response = requests.get(url, headers={})
+
+        if response.status_code == 200:
+            logger.info(f"Fetched filenames for user - ${user_id} from {prefix}")
+            return response.json()
+        else:
+            logger.error(response)
+            return response
+        
+        
+    

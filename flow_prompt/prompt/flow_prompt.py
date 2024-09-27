@@ -199,6 +199,32 @@ class FlowPrompt:
         
         return response
     
+    def update_overview(self, user_id: str, overview: str):
+        """Update elytimesai user's overview
+
+        Args:
+            user_id (str): elytimes user id,
+            overview (str): new overview to replace the old one
+        """
+        
+        response = FlowPromptService.update_user_overview(user_id, overview)
+        
+        return response
+    
+    def get_file_names(self, prefix: str, user_id: str):
+        """Fetch all filenames of the given user
+
+        Args:
+            prefix (str): s3 bucket folder name to fetch from
+            user_id (str): elytimes user identifier
+
+        Returns:
+            list: list of file names
+        """
+        response = FlowPromptService.get_file_names(prefix, user_id)
+        
+        return response
+    
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:
