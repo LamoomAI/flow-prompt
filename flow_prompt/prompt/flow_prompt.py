@@ -224,6 +224,21 @@ class FlowPrompt:
         response = FlowPromptService.get_file_names(prefix, user_id)
         
         return response
+
+    def get_files(self, paths: list[str], user_id: str):
+        """Method to fetch file contents by the provided s3 paths
+
+        Args:
+            paths (list[str]): paths to s3 bucket files
+            user_id (str): elytimes user identifier
+        
+        Returns: 
+            dict: key = path, value: file content 
+        """
+        
+        response = FlowPromptService.get_files(paths, user_id)
+        
+        return response
     
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """

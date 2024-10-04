@@ -232,5 +232,25 @@ class FlowPromptService:
             logger.error(response)
             return response
         
+    @classmethod
+    def get_files(
+        cls,
+        paths: list,
+        user_id: str
+    ):
+        url = f"{cls.url}lib/elytimes?getFiles&user_id={user_id}"
         
+        data = {
+            'paths': paths
+        }
+        
+        json_data = json.dumps(data)
+        response = requests.post(url=url, headers={}, data=json_data)
+
+        if response.status_code == 200:
+            logger.info(f"Fetched files for user - ${user_id}")
+            return response.json()
+        else:
+            logger.error(response)
+            return response
     
