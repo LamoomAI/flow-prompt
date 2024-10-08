@@ -218,12 +218,14 @@ class FlowPromptService:
     def get_file_names(
         cls, 
         prefix: str,
-        user_id: str
+        user_id: str,
+        api_token: str,
     ):
-        url = f"{cls.url}lib/elytimes?getFileNames&prefix={prefix}&user_id={user_id}"
+        url = f"{cls.url}lib/files?getFileNames&prefix={prefix}&user_id={user_id}"
+        headers = {"Authorization": f"Token {api_token}"}
 
         logger.debug(f"Request to {url}")
-        response = requests.get(url, headers={})
+        response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             logger.info(f"Fetched filenames for user - ${user_id} from {prefix}")
@@ -236,16 +238,17 @@ class FlowPromptService:
     def get_files(
         cls,
         paths: list,
-        user_id: str
+        user_id: str,
+        api_token: str,
     ):
-        url = f"{cls.url}lib/elytimes?getFiles&user_id={user_id}"
-        
+        url = f"{cls.url}lib/files?getFiles&user_id={user_id}"
+        headers = {"Authorization": f"Token {api_token}"}
         data = {
             'paths': paths
         }
         
         json_data = json.dumps(data)
-        response = requests.post(url=url, headers={}, data=json_data)
+        response = requests.post(url=url, headers=headers, data=json_data)
 
         if response.status_code == 200:
             logger.info(f"Fetched files for user - ${user_id}")
@@ -254,3 +257,25 @@ class FlowPromptService:
             logger.error(response)
             return response
     
+    @classmethod
+    def save_files(
+        cls, 
+        files: dict,
+        user_id: str,
+        api_token: str,
+    ):
+        url = f"{cls.url}lib/files?saveFiles&user_id={user_id}"
+        headers = {"Authorization": f"Token {api_token}"}
+        data = {
+            'files': files,
+        }
+        
+        json_data = json.dumps(data)
+        response = requests.post(url=url, headers=headers, data=json_data)
+
+        if response.status_code == 200:
+            logger.info(f"Saved files for user - ${user_id}")
+            return response.json()
+        else:
+            logger.error(response)
+            return response

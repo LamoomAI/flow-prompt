@@ -221,7 +221,7 @@ class FlowPrompt:
         Returns:
             list: list of file names
         """
-        response = FlowPromptService.get_file_names(prefix, user_id)
+        response = FlowPromptService.get_file_names(prefix, user_id, self.api_token)
         
         return response
 
@@ -236,9 +236,21 @@ class FlowPrompt:
             dict: key = path, value: file content 
         """
         
-        response = FlowPromptService.get_files(paths, user_id)
+        response = FlowPromptService.get_files(paths, user_id, self.api_token)
         
         return response
+    
+    def save_files(self, files: dict, user_id: str):
+        """Method to save files into FPS S3 bucket
+
+        Args:
+            files (dict): dictionary where key = file_name (relative path), val = file_content
+        """
+        
+        response = FlowPromptService.save_files(files, user_id, self.api_token)
+        
+        return response
+    
     
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
