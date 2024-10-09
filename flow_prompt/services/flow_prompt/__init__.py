@@ -23,7 +23,6 @@ class FlowPromptServiceResponse:
 
 class FlowPromptService:
     url: str = settings.FLOW_PROMPT_API_URI
-    elytimes_ai_url: str = settings.ELYTIMES_AI_API_URI
     cached_prompts = {}
 
     def get_actual_prompt(
@@ -200,16 +199,18 @@ class FlowPromptService:
     def update_user_overview(
         cls,
         user_id: str,
-        overview: str
+        overview: str,
+        api_token: str
     ):
-        url = f"{cls.elytimes_ai_url}lib/users"
+        url = f"{cls.url}lib/files?updateOverview"
+        headers = {"Authorization": f"Token {api_token}"}
         data = {
-            "user_id": user_id,
+            'user_id': user_id,
             "overview": overview,
         }
         json_data = json.dumps(data)
         logger.debug(f"Request to {url} with data: {data}")
-        response = requests.post(url, headers={}, data=json_data)
+        response = requests.post(url, headers=headers, data=json_data)
         logger.info(f"Update overview of the user: ${user_id}")
         
         return response
@@ -241,9 +242,10 @@ class FlowPromptService:
         user_id: str,
         api_token: str,
     ):
-        url = f"{cls.url}lib/files?getFiles&user_id={user_id}"
+        url = f"{cls.url}lib/files?getFiles"
         headers = {"Authorization": f"Token {api_token}"}
         data = {
+            'user_id': user_id,
             'paths': paths
         }
         
@@ -264,9 +266,10 @@ class FlowPromptService:
         user_id: str,
         api_token: str,
     ):
-        url = f"{cls.url}lib/files?saveFiles&user_id={user_id}"
+        url = f"{cls.url}lib/files?saveFiles"
         headers = {"Authorization": f"Token {api_token}"}
         data = {
+            'user_id': user_id,
             'files': files,
         }
         

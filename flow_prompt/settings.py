@@ -31,10 +31,6 @@ FLOW_PROMPT_API_URI = os.environ.get(
     "FLOW_PROMPT_API_URI", "https://api.flow-prompt.com/"
 )
 
-ELYTIMES_AI_API_URI = os.environ.get(
-    "ELYTIMES_AI_API_URI", "https://api.elytimesai.com/"
-)
-
 CACHE_PROMPT_FOR_EACH_SECONDS = int(
     os.environ.get("FLOW_PROMPT_CACHE_PROMPT_FOR_EACH_SECONDS", 5 * 60)
 )  # 5 minutes by default
