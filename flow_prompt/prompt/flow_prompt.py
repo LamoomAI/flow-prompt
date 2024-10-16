@@ -199,6 +199,59 @@ class FlowPrompt:
         
         return response
     
+    def update_overview(self, overview: str, user_id: str = None):
+        """Update user's overview
+
+        Args:
+            user_id (str): user id,
+            overview (str): new overview to replace the old one
+        """
+        
+        response = FlowPromptService.update_user_overview(user_id, overview, self.api_token)
+        
+        return response
+    
+    def get_file_names(self, prefix: str, user_id: str = None):
+        """Fetch all filenames of the given user
+
+        Args:
+            prefix (str): s3 bucket folder name to fetch from
+            user_id (str): user identifier
+
+        Returns:
+            list: list of file names
+        """
+        response = FlowPromptService.get_file_names(prefix, user_id, self.api_token)
+        
+        return response
+
+    def get_files(self, paths: list[str], user_id: str = None):
+        """Method to fetch file contents by the provided s3 paths
+
+        Args:
+            paths (list[str]): paths to s3 bucket files
+            user_id (str): user identifier
+        
+        Returns: 
+            dict: key = path, value: file content 
+        """
+        
+        response = FlowPromptService.get_files(paths, user_id, self.api_token)
+        
+        return response
+    
+    def save_files(self, files: dict, user_id: str = None):
+        """Method to save files into FPS S3 bucket
+
+        Args:
+            files (dict): dictionary where key = file_name (relative path), val = file_content
+        """
+        
+        response = FlowPromptService.save_files(files, user_id, self.api_token)
+        
+        return response
+    
+    
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:
