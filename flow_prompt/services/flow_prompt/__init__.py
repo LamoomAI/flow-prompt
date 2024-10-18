@@ -282,3 +282,33 @@ class FlowPromptService:
         else:
             logger.error(response)
             return response
+        
+    @classmethod
+    def process_feedback(
+        cls,
+        user_feedback: str,
+        response_id: str,
+        api_token: str
+    ):
+        url = f"{cls.url}lib/files?processFeedback"
+        headers = {"Authorization": f"Token {api_token}"}
+        data = {
+            'user_feedback': user_feedback,
+            'response_id': response_id,
+        }
+        
+        json_data = json.dumps(data)
+        response = requests.post(url=url, headers=headers, data=json_data)
+
+        if response.status_code == 200:
+            logger.info(f"Processed user feedback")
+            return response.json()
+        else:
+            logger.error(response)
+            return response
+        
+    def get_relevant_files(
+        cls,
+        query: str,
+        
+    )

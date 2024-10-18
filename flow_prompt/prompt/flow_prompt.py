@@ -252,6 +252,12 @@ class FlowPrompt:
         return response
     
     
+    def send_feedback(self, user_feedback, response_id):
+        response = FlowPromptService.process_feedback(user_feedback, response_id, self.api_token)
+        
+        return response
+    
+    
     def get_pipe_prompt(self, prompt_id: str, version: str = None) -> PipePrompt:
         """
         if the user has keys:  lib -> service: get_actual_prompt(local_prompt) -> Service:
