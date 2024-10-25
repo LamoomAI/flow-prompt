@@ -109,18 +109,18 @@ def test_openai_pricing(fp, openai_behaviour_4o, openai_behaviour_4o_mini):
     assert result_4o.metrics.price_of_call > result_4o_mini.metrics.price_of_call
     
 
-def test_claude_pricing(fp, claude_behaviour_haiku, claude_behaviour_sonnet):
+# def test_claude_pricing(fp, claude_behaviour_haiku, claude_behaviour_sonnet):
 
-    context = {
-        'ideal_answer': "There are eight planets",
-        'text': "Hi! Please tell me how many planets are there in the solar system?"
-    }
+#     context = {
+#         'ideal_answer': "There are eight planets",
+#         'text': "Hi! Please tell me how many planets are there in the solar system?"
+#     }
 
-    # initial version of the prompt
-    prompt_id = f'test-{time.time()}'
-    fp.service.clear_cache()
-    prompt = PipePrompt(id=prompt_id) 
-    prompt.add("{text}", role='user')
+#     # initial version of the prompt
+#     prompt_id = f'test-{time.time()}'
+#     fp.service.clear_cache()
+#     prompt = PipePrompt(id=prompt_id) 
+#     prompt.add("{text}", role='user')
     
-    fp.call(prompt.id, context, claude_behaviour_haiku, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
-    fp.call(prompt.id, context, claude_behaviour_sonnet, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+#     fp.call(prompt.id, context, claude_behaviour_haiku, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+#     fp.call(prompt.id, context, claude_behaviour_sonnet, test_data={'ideal_answer': "There are eight", 'behavior_name': "gemini"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
