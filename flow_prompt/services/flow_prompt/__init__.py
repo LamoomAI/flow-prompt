@@ -86,7 +86,7 @@ class FlowPromptService:
 
             # update cache
             self.cached_prompts[prompt_id] = {
-                "prompt": response,
+                "prompt": prompt_data,
                 "timestamp": current_timestamp_ms(),
                 "is_taken_globally": is_taken_globally,
                 "version": version,
