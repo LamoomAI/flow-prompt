@@ -10,7 +10,7 @@ from flow_prompt.responses import AIResponse
 class AI_MODELS_PROVIDER(Enum):
     OPENAI = "openai"
     AZURE = "azure"
-    CLAUDE = ("claude",)
+    CLAUDE = "claude"
     GEMINI = "gemini"
 
 
@@ -31,6 +31,10 @@ class AIModel:
     def price_per_prompt_1k_tokens(self) -> Decimal:
         return self._price_per_prompt_1k_tokens
 
+    @property
+    def price_per_sample_1k_tokens(self) -> Decimal:
+        return self._price_per_sample_1k_tokens
+
     def _decimal(self, value) -> Decimal:
         return Decimal(value).quantize(Decimal(".00001"))
     
@@ -40,12 +44,11 @@ class AIModel:
     def get_sample_price(self, prompt_sample, count_tokens: int) -> Decimal:
         return self._decimal(self.price_per_sample_1k_tokens * Decimal(count_tokens) / 1000)
 
-    @property
-    def price_per_sample_1k_tokens(self) -> Decimal:
-        return self._price_per_sample_1k_tokens
-
     def get_params(self) -> t.Dict[str, t.Any]:
         return {}
+
+    def prepare_message(self, message: t.Dict) -> t.Dict:
+        raise NotImplementedError
 
     def call(self, *args, **kwargs) -> AIResponse:
         raise NotImplementedError

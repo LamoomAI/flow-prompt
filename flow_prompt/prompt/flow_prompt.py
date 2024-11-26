@@ -112,7 +112,7 @@ class FlowPrompt:
     def call(
         self,
         prompt_id: str,
-        context: t.Dict[str, str],
+        context: t.Dict[str, t.Any],
         behaviour: AIModelsBehaviour,
         params: t.Dict[str, t.Any] = {},
         version: str = None,
@@ -121,6 +121,8 @@ class FlowPrompt:
         stream_function: t.Callable = None,
         check_connection: t.Callable = None,
         stream_params: dict = {},
+        images: t.Optional[t.Dict[str, t.Any]] = None,
+        files: t.Optional[t.Dict[str, t.Any]] = None,
     ) -> AIResponse:
         
         """
@@ -135,7 +137,7 @@ class FlowPrompt:
         while prompt_attempts.initialize_attempt():
             current_attempt = prompt_attempts.current_attempt
             user_prompt = pipe_prompt.create_prompt(current_attempt)
-            calling_messages = user_prompt.resolve(context)
+            calling_messages = user_prompt.resolve(context, images, files)
             
             """
             Create CI/CD when calling first time
@@ -295,9 +297,10 @@ class FlowPrompt:
     def calculate_budget_for_text(self, user_prompt: UserPrompt, text: str) -> int:
         if not text:
             return 0
+
         return len(user_prompt.encoding.encode(text))
 
     def get_price(
         self, attempt: AttemptToCall, sample_budget: int, prompt_budget: int
     ) -> Decimal:
-        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(prompt_budget, sample_budget)
+        return attempt.ai_model.get_prompt_price(prompt_budget) + attempt.ai_model.get_sample_price(sample_budget, prompt_budget)

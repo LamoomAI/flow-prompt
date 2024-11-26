@@ -1,3 +1,4 @@
+from google.ai.generativelanguage import Part
 from flow_prompt.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
 import logging
 
@@ -91,12 +92,37 @@ class ClaudeAIModel(AIModel):
             if last_role != message.get("role"):
                 result.append(message)
                 last_role = message.get("role")
-            else:
+            elif result[-1]["type"] == "text" and message["type"] == "text":
                 result[-1]["content"] += message.get("content")
+            else:
+                result.append(message)
         return result
 
+    def prepare_message(self, message: t.Dict) -> t.Dict:
+        msg: t.Dict = {}
 
-    def call(self, messages: t.List[dict], max_tokens: int, client_secrets: dict = {}, **kwargs) -> AIResponse:
+        content = message["content"]
+        msg["role"] = message["role"]
+        if message["type"] == "text":
+            msg["content"] = [{
+                "type": "text",
+                "text": content,
+            }]
+        elif message["type"] == "image":
+            msg["content"] = [{
+                "type": "image",
+                "source": {
+                    "type": content["encoding"],
+                    "media_type": content["mime_type"],
+                    "data": content["image_base64"],
+                },
+            }]
+        elif message["type"] == "file":
+            msg["content"] = [{}]
+
+        return msg
+
+    def call(self, messages: t.List[t.Dict], max_tokens: int, client_secrets: t.Dict = {}, **kwargs) -> AIResponse:
         common_args = get_common_args(max_tokens)
         kwargs = {
             **common_args,
@@ -115,11 +141,12 @@ class ClaudeAIModel(AIModel):
         stream_params = kwargs.get("stream_params")
 
         content = ""
+        prepared_messages = [self.prepare_message(message) for message in messages]
 
         try:
             if kwargs.get("stream"):
                 with client.messages.stream(
-                    model=self.model, max_tokens=max_tokens, messages=messages
+                    model=self.model, max_tokens=max_tokens, messages=prepared_messages
                 ) as stream:
                     idx = 0
                     for text in stream.text_stream:
@@ -132,7 +159,7 @@ class ClaudeAIModel(AIModel):
                         idx += 1
             else:
                 response = client.messages.create(
-                    model=self.model, max_tokens=max_tokens, messages=messages
+                    model=self.model, max_tokens=max_tokens, messages=prepared_messages
                 )
                 content = response.content[0].text
             return ClaudeAIReponse(
@@ -149,6 +176,7 @@ class ClaudeAIModel(AIModel):
         except Exception as e:
             logger.exception("[CLAUDEAI] failed to handle chat stream", exc_info=e)
             raise RetryableCustomError(f"Claude AI call failed!")
+
 
     def name(self) -> str:
         return self.model
