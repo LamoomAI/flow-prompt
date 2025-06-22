@@ -17,7 +17,7 @@ def client():
 def stream_function(text, **kwargs):
     print(text)
 
-def stream_check_connection(validate, **kwargs):
+def stream_check_connection(validate=True, **kwargs):
     return validate
 
 def test_creating_lamoom_test(client):
@@ -33,4 +33,4 @@ def test_creating_lamoom_test(client):
     prompt = Prompt(id=prompt_id) 
     prompt.add("{text}", role='user')
 
-    client.call(prompt.id, context, "azure/useast/gpt-4o", test_data={'ideal_answer': "There are eight", 'model_name': "gemini/gemini-1.5-flash"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    client.call(prompt.id, context, "azure/useast/gpt-4.1-mini", test_data={'ideal_answer': "There are eight", 'model_name': "gemini/gemini-1.5-flash"}, stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})

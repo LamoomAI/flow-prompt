@@ -38,8 +38,5 @@ class ProviderNotFoundError(LamoomError):
     pass
 
 
-class NotParsedResponseException(LamoomError):
-    pass
-
 class APITokenNotProvided(LamoomError):
     pass

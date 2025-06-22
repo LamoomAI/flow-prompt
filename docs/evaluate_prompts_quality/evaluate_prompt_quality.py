@@ -27,7 +27,7 @@ def main():
             'prompt_data': prompt_chats,
             'prompt_id': prompt_id,
         }
-        result = lamoom.call(prompt_to_evaluate_prompt.id, context, 'azure/useast/o4-mini')
+        result = lamoom.call(prompt_to_evaluate_prompt.id, context, 'azure/useast/gpt-4.1-mini')
         print(result.content)
 
 if __name__ == '__main__':

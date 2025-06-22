@@ -32,7 +32,7 @@ def test_model(client):
     result = client.call(prompt.id, context, "openai/o4-mini")
     assert result.content
     
-    result = client.call(prompt.id, context, "azure/useast/gpt-4o")
+    result = client.call(prompt.id, context, "azure/useast/gpt-4.1-mini")
     assert result.content
     
     result = client.call(prompt.id, context, "gemini/gemini-1.5-flash")
