@@ -84,7 +84,7 @@ class Lamoom:
                 self.clients[AI_MODELS_PROVIDER.AZURE.value] = {}
             for realm, key_data in self.azure_keys.items():
                 self.clients[AI_MODELS_PROVIDER.AZURE.value][realm] = {
-                    "api_version": key_data.get("api_version", "2023-07-01-preview"),
+                    "api_version": key_data.get("api_version", "2024-12-01-preview"),
                     "azure_endpoint": key_data["url"],
                     "api_key": key_data["key"],
                 }
