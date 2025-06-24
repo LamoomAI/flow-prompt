@@ -384,7 +384,7 @@ class AIModel:
         )
         stream_response.metrics.latency = current_timestamp_ms() - stream_response.started_tmst
 
-        if settings.USE_API_SERVICE and client.api_token:
+        if settings.USE_API_SERVICE and client and client.api_token:
             stream_response.id = f"{prompt.id}#{stream_response.started_tmst}" + (f"#{attempt}" if attempt else "")
             client.worker.add_task(
                 client.api_token,

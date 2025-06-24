@@ -255,14 +255,18 @@ class Lamoom:
         test_data: dict = {},
         stream_function: t.Callable = None,
         check_connection: t.Callable = None,
-        stream_params: dict = {}
+        stream_params: dict = {},
+        prompt_data: dict = {},
     ) -> AIResponse:
         """
         Call flow prompt with context and behaviour
         """
 
         logger.debug(f"Calling {prompt_id}")
-        prompt = self.get_prompt(prompt_id, version)
+        if prompt_data:
+            prompt = Prompt.service_load(prompt_data)
+        else:
+            prompt = self.get_prompt(prompt_id, version)
         
         behaviour = self.init_behavior(model)
         
