@@ -83,7 +83,7 @@ class Prompt(BasePrompt):
     def service_load(cls, data) -> "Prompt":
         prompt = cls(
             id=data["prompt_id"],
-            max_tokens=data.get("max_tokens"),
+            max_tokens=data.get("max_tokens", settings.DEFAULT_MAX_BUDGET),
             min_sample_tokens=data.get("min_sample_tokens") or cls.min_sample_tokens,
             reserved_tokens_budget_for_sampling=data.get(
                 "reserved_tokens_budget_for_sampling"
