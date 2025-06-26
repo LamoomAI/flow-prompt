@@ -110,9 +110,9 @@ class OpenAIModel(AIModel):
         try:
             call_kwargs = {
                 "messages": stream_response.messages,
-                "stream": True,
                 **self.get_params(),
-                **kwargs
+                **kwargs,
+                **{"stream": True},
             }
             if max_tokens:
                 call_kwargs["max_completion_tokens"] = min(max_tokens, self.max_sample_budget)
