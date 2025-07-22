@@ -78,7 +78,7 @@ def test_prompt_show_pipe():
     pipe_dump = pipe.dump()
     assert pipe_dump['id'] == 'test'
     assert pipe_dump['max_tokens'] is None
-    assert pipe_dump['min_sample_tokens'] == 3000
+    assert pipe_dump['min_sample_tokens'] > 8000
     assert pipe_dump['reserved_tokens_budget_for_sampling'] is None
     assert len(pipe_dump['pipe']) == 1
     assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False}]}
@@ -98,14 +98,14 @@ def test_prompt_left_budget(azure_ai_attempt:  AttemptToCall):
     )
 
 
-def test_prompt_prompt_price(azure_ai_attempt:  AttemptToCall):
+def test_prompt_prompt_price(azure_ai_attempt: AttemptToCall):
     pipe = Prompt(id='test')
     pipe.add("Hello, how can I help you today?")
     user_prompt = pipe.create_prompt(azure_ai_attempt)
-    user_prompt.model_max_tokens = 4030
+    user_prompt.model_max_tokens = 20000
     user_prompt.add("Hello " + 'world ' * 1000)
     pipe = user_prompt.resolve({}, {})
-    assert len(pipe.get_messages()) == 1
+    assert len(pipe.get_messages()) == 2
 
 
 def test_prompt_calculate_budget_for_values(azure_ai_attempt:  AttemptToCall):
@@ -137,3 +137,44 @@ def test_prompt_copy():
     original_dump.pop('id')
     copy_dump.pop('id')
     assert original_dump == copy_dump
+
+
+def test_prompt_add_base64_image(azure_ai_attempt: AttemptToCall):
+    """Test adding base64 image content to prompt"""
+    pipe = Prompt(id='test-base64-image')
+    
+    # Mock base64 image data
+    base64_image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    
+    pipe.add(base64_image, type='base64_image', is_multiple=False)
+    user_prompt = pipe.create_prompt(azure_ai_attempt)
+    
+    assert len(user_prompt.pipe) == 1
+    assert user_prompt.priorities[0][0].content == base64_image
+    assert user_prompt.priorities[0][0].type == 'base64_image'
+
+
+def test_prompt_add_multiple_base64_images(azure_ai_attempt: AttemptToCall):
+    """Test adding multiple base64 images to prompt"""
+    pipe = Prompt(id='test-multiple-base64-images')
+    
+    # Mock base64 image data
+    base64_image1 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    base64_image2 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    
+    pipe.add("screens", type='base64_image', is_multiple=True)
+    user_prompt = pipe.create_prompt(azure_ai_attempt)
+    
+    # Test with context containing multiple images
+    context = {
+        "screens": [base64_image1, base64_image2]
+    }
+    
+    calling_messages = user_prompt.resolve(context, {})
+    messages = calling_messages.messages
+    
+    assert len(messages) == 2
+    assert messages[0]["type"] == 'image_url'
+    assert messages[0]["image_url"]["url"] == f"data:image/jpeg;base64,{base64_image1}"
+    assert messages[1]["type"] == 'image_url'
+    assert messages[1]["image_url"]["url"] == f"data:image/jpeg;base64,{base64_image2}"

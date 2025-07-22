@@ -37,7 +37,21 @@ RECEIVE_PROMPT_FROM_SERVER = parse_bool(
 )
 SHOULD_INCLUDE_REASONING = parse_bool(os.environ.get("SHOULD_INCLUDE_REASONING", True))
 PIPE_PROMPTS = {}
-FALLBACK_MODELS = []
+
+# Parse FALLBACK_MODELS from environment variable
+# Can be either a list of model names or a dict with model names as keys and weights as values
+fallback_models_env = os.environ.get("LAMOOM_FALLBACK_MODELS", "[]")
+try:
+    if fallback_models_env.startswith("{"):
+        # Parse as dict with weights
+        FALLBACK_MODELS = json.loads(fallback_models_env)
+    else:
+        # Parse as list
+        FALLBACK_MODELS = json.loads(fallback_models_env)
+except (json.JSONDecodeError, ValueError):
+    # Default to empty list if parsing fails
+    FALLBACK_MODELS = []
+
 LAMOOM_CUSTOM_PROVIDERS = json.loads(
     os.getenv("custom_keys", os.getenv("LAMOOM_CUSTOM_PROVIDERS", "{}"))
 )

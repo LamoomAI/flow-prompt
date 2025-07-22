@@ -22,6 +22,7 @@ class ChatMessage:
     tool_calls: t.Dict[str, str]
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
+    type: t.Optional[str] = None
 
     def is_not_empty(self):
         return bool(self.content or self.tool_calls)
@@ -37,12 +38,20 @@ class ChatMessage:
         self.content = kwargs["content"]
         self.name = kwargs.get("name")
         self.tool_calls = kwargs.get("tool_calls") or {}
+        self.type = kwargs.get("type")
+        self.ref_name = kwargs.get("ref_name")
+        self.ref_value = kwargs.get("ref_value")
 
     def to_dict(self):
         result = {
             "role": self.role,
             "content": self.content,
         }
+        
+        if self.type == "base64_image":
+            # Handle base64 image content
+            result["type"] = self.type
+            
         if self.name:
             result["name"] = self.name
         if self.tool_calls:
@@ -70,6 +79,7 @@ class ChatsEntity:
     last_words: t.Optional[str] = None
     ref_name: t.Optional[str] = None
     ref_value: t.Optional[str] = None
+    type: t.Optional[str] = None
 
     def __post_init__(self):
         self._uuid = uuid.uuid4().hex
@@ -91,7 +101,7 @@ class ChatsEntity:
                 # verify that values are json list of ChatMessage
                 try:
                     result = [
-                        ChatMessage(**({"content": c} if isinstance(c, str) else c))
+                        ChatMessage(**({"content": c, "type": self.type} if isinstance(c, str) else {**c, "type": self.type}))
                         for c in values
                     ]
                 except TypeError as e:
@@ -111,6 +121,7 @@ class ChatsEntity:
                 tool_calls=self.tool_calls,
                 ref_name=self.ref_name,
                 ref_value=self.ref_value,
+                type=self.type,
             )
         ]
 
@@ -143,6 +154,7 @@ class ChatsEntity:
             "last_words": self.last_words,
             "ref_name": self.ref_name,
             "ref_value": self.ref_value,
+            "type": self.type,
         }
         for k, v in list(data.items()):
             if v is None:
@@ -169,4 +181,5 @@ class ChatsEntity:
             last_words=data.get("last_words"),
             ref_name=data.get("ref_name"),
             ref_value=data.get("ref_value"),
+            type=data.get("type"),
         )

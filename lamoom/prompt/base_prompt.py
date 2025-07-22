@@ -47,10 +47,14 @@ class BasePrompt:
         label: t.Optional[str] = None,
         presentation: t.Optional[str] = None,
         last_words: t.Optional[str] = None,
+        type: t.Optional[str] = None,
     ):
         if not isinstance(content, str):
             logger.warning(f"content is not string: {content}, assignig str of it")
             content = str(content)
+
+        if type == "base64_image":
+            in_one_message = False
 
         chat_value = ChatsEntity(
             role=role,
@@ -68,6 +72,7 @@ class BasePrompt:
             label=label,
             presentation=presentation,
             last_words=last_words,
+            type=type,
         )
         self.chats.append(chat_value)
         self.priorities[priority].append(chat_value)

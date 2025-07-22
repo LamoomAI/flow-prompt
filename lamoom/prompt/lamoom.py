@@ -184,7 +184,7 @@ class Lamoom:
             **context
         }
 
-    def init_attempt(self, model_info: dict) -> AttemptToCall:
+    def init_attempt(self, model_info: dict, weight: int = 100) -> AttemptToCall:
         provider = model_info['provider']
         model_name = model_info['model_name']
                 
@@ -193,14 +193,14 @@ class Lamoom:
                     ai_model=ClaudeAIModel(
                         model=model_name,
                     ),
-                    weight=100,
+                    weight=weight,
                 )
         elif provider == AI_MODELS_PROVIDER.OPENAI.value:
             return AttemptToCall(
                     ai_model=OpenAIModel(
                         model=model_name
                     ),
-                    weight=100,
+                    weight=weight,
                 )
         elif provider == AI_MODELS_PROVIDER.GEMINI.value:
             return AttemptToCall(
@@ -208,7 +208,7 @@ class Lamoom:
                         model=model_name,
                         provider=AI_MODELS_PROVIDER.GEMINI,
                     ),
-                    weight=100,
+                    weight=weight,
                 )
         elif provider.startswith('custom_'):
             # Handle custom provider format
@@ -218,7 +218,7 @@ class Lamoom:
                         provider=AI_MODELS_PROVIDER.CUSTOM,
                         _provider_name=model_info['provider']
                     ),
-                    weight=100,
+                    weight=weight,
                 )
         elif provider == AI_MODELS_PROVIDER.AZURE.value:
             return AttemptToCall(
@@ -226,19 +226,22 @@ class Lamoom:
                         realm=model_info['realm'],
                         deployment_id=model_name,
                     ),
-                    weight=100,
+                    weight=weight,
                 )
     
-    def init_behavior(self, model: str) -> AIModelsBehaviour:
+    def init_behavior(self, model: str, fallback_models: dict = None) -> AIModelsBehaviour:
         main_model_info = self.extract_provider_name(model)
-        
         main_attempt = self.init_attempt(main_model_info)
-        
         fallback_attempts = []
-        for model in settings.FALLBACK_MODELS:
+        fallback_config = fallback_models if fallback_models is not None else settings.FALLBACK_MODELS
+        if fallback_config:
+            for model_name, weight in fallback_config.items():
+                model_info = self.extract_provider_name(model_name)
+                fallback_attempts.append(self.init_attempt(model_info, weight))
+        else:
             model_info = self.extract_provider_name(model)
             fallback_attempts.append(self.init_attempt(model_info))
-        
+
         return AIModelsBehaviour(
             attempt=main_attempt,
             fallback_attempts=fallback_attempts
@@ -257,6 +260,7 @@ class Lamoom:
         check_connection: t.Callable = None,
         stream_params: dict = {},
         prompt_data: dict = {},
+        fallback_models: t.Union[list, dict] = None,
     ) -> AIResponse:
         """
         Call flow prompt with context and behaviour
@@ -268,7 +272,7 @@ class Lamoom:
         else:
             prompt = self.get_prompt(prompt_id, version)
         
-        behaviour = self.init_behavior(model)
+        behaviour = self.init_behavior(model, fallback_models)
         
         logger.info(behaviour)
         
