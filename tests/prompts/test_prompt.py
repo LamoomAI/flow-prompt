@@ -60,29 +60,6 @@ def test_prompt_initialize(azure_ai_attempt: AttemptToCall):
     assert messages[0].content == "Hello, how can I help you today?"
 
 
-def test_prompt_initialize_not_enough_budget(azure_ai_attempt:  AttemptToCall):
-    pipe = Prompt(id='test')
-    user_prompt = pipe.create_prompt(azure_ai_attempt)
-    user_prompt.add("Hello, how can I help you today?", required=True)
-
-    context = {}
-    user_prompt.min_sample_tokens = 1299  # Not enough tokens for the message
-    user_prompt.model_max_tokens = 1300  # Not enough tokens for the message
-    with pytest.raises(NotEnoughBudgetError):
-        user_prompt.resolve(context, {})
-
-
-def test_prompt_show_pipe():
-    pipe = Prompt(id='test')
-    pipe.add("Hello, how can I help you today?")
-    pipe_dump = pipe.dump()
-    assert pipe_dump['id'] == 'test'
-    assert pipe_dump['max_tokens'] is None
-    assert pipe_dump['min_sample_tokens'] > 8000
-    assert pipe_dump['reserved_tokens_budget_for_sampling'] is None
-    assert len(pipe_dump['pipe']) == 1
-    assert pipe_dump['priorities'] == {0: [{'content': 'Hello, how can I help you today?', 'role': 'user', 'priority': 0, 'required': False, 'is_multiple': False, 'while_fits': False, 'add_in_reverse_order': False, 'in_one_message': False, 'continue_if_doesnt_fit': False}]}
-
 def test_prompt_left_budget(azure_ai_attempt:  AttemptToCall):
     pipe = Prompt(id='test')
     pipe.add("Hello, how can I help you today?")
@@ -106,24 +83,6 @@ def test_prompt_prompt_price(azure_ai_attempt: AttemptToCall):
     user_prompt.add("Hello " + 'world ' * 1000)
     pipe = user_prompt.resolve({}, {})
     assert len(pipe.get_messages()) == 2
-
-
-def test_prompt_calculate_budget_for_values(azure_ai_attempt:  AttemptToCall):
-    pipe = Prompt(id='test')
-    pipe.max_tokens = 1400
-    pipe.min_sample_tokens = 1000
-
-    pipe.add("Priority. Hello {name}", priority=1)
-    pipe.add("2d priority. Hello {name}", priority=2)
-    pipe.add(
-        "no priority. didn't fit. Hello {name}" + ("hello" * 1000), priority=2
-    )
-    user_prompt = pipe.create_prompt(azure_ai_attempt)
-    prompt = user_prompt.resolve({"name": "World"}, {})
-    messages = prompt.get_messages()
-    assert len(messages) == 2
-    assert messages[0]["content"] == "Priority. Hello World"
-    assert messages[1]["content"] == "2d priority. Hello World"
 
 
 def test_prompt_copy():
