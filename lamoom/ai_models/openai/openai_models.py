@@ -6,7 +6,7 @@ from enum import Enum
 from openai import OpenAI
 
 from lamoom.ai_models.ai_model import AI_MODELS_PROVIDER, AIModel
-from lamoom.ai_models.constants import C_128K, C_16K, C_32K, C_4K
+from lamoom.ai_models.constants import C_128K, C_16K, C_32K, C_4K, C_100K, C_200K
 from lamoom.ai_models.openai.responses import StreamingResponse
 from lamoom.exceptions import ConnectionLostError, RetryableCustomError
 from lamoom.ai_models.tools.base_tool import TOOL_CALL_END_TAG, TOOL_CALL_START_TAG
@@ -34,11 +34,11 @@ BASE_URL_MAPPING = {
 
 @dataclass(kw_only=True)
 class OpenAIModel(AIModel):
-    max_tokens: int = C_16K
+    max_tokens: int = C_200K
     support_functions: bool = False
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.OPENAI
     family: str = None
-    max_sample_budget: int = C_4K
+    max_sample_budget: int = C_16K
     base_url: str = None
     api_key: str = None
 
@@ -110,11 +110,11 @@ class OpenAIModel(AIModel):
         try:
             call_kwargs = {
                 "messages": stream_response.messages,
-                "stream": True,
                 **self.get_params(),
-                **kwargs
+                **kwargs,
+                **{"stream": True},
             }
-            if max_tokens:
+            if max_tokens > 0:
                 call_kwargs["max_completion_tokens"] = min(max_tokens, self.max_sample_budget)
             logger.info(f"Calling OpenAI with params: {call_kwargs}")
             completion = client.chat.completions.create(**call_kwargs)

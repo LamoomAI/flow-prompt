@@ -7,6 +7,7 @@ import typing as t
 from lamoom.ai_models.tools.base_tool import TOOL_CALL_NAME, TOOL_CALL_RESULT_NAME, ToolCallResult, ToolDefinition, format_tool_result_message
 from lamoom.settings import SHOULD_INCLUDE_REASONING
 from lamoom.utils import current_timestamp_ms
+from lamoom.response_parsers.response_parser import get_json_from_response
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class AIResponse:
 
     @property
     def parsed_json(self) -> t.Optional[dict]:
-        parsed_json_response = get_json_from_response(self)
+        parsed_json_response = get_json_from_response(self.response)
         return parsed_json_response.parsed_content if parsed_json_response else None
 
 
@@ -74,6 +75,7 @@ class StreamingResponse(AIResponse):
         self.is_detected_tool_call = False
         self.content = ''
         self.reasoning = ''
+        self.started_tmst = current_timestamp_ms()
 
     def set_streaming(self):
         if not self.started_tmst:

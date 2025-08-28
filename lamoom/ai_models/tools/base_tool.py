@@ -17,20 +17,19 @@ TOOL_CALL_END_TAG = f"</{TOOL_CALL_NAME}>"
 
 
 def get_tool_system_prompt(tool_descriptions: str, context: t.Dict[str, str]):
-    return  f"""You have next tools:
+    return  f"""You have next tools available:
 ```
 {resolve(tool_descriptions, context)}
 ```
 # Tool calling procedure
 
-Before calling any function, please follow procedure. You're doing unnecessary calls of tools. Make a mindset of what you need to do.
+Before calling any function, please follow procedure. Make a mindset of what you need to do.
 ## 1. Think out loud what you need to do
 ## 2. Provide 5 whys;
 ## 3. Call a tool, you can call it when in <think>;
 
 <function_call_format_rules>
 If you need to use a function, use the next exactly format. That format will be parsed from your answer:
-</function_call_format_rules>
 ```
 """ + TOOL_CALL_START_TAG + """
 {
@@ -41,16 +40,22 @@ If you need to use a function, use the next exactly format. That format will be 
 }
 """ + TOOL_CALL_END_TAG + """
 ```
+</function_call_format_rules>
+
 """
 
 
 @dataclass
 class ToolCallResult:
+    tool_name: str
     content: str
     has_tool_call: bool
-    tool_name: t.Optional[str] = None
     parameters: t.Optional[dict] = None
     execution_result: str = None
+    update_json_context: bool = False
+
+    def __str__(self):
+        return f"ToolCallResult:\ntool_name={self.tool_name}\nparameters={self.parameters}\nexecution_result={self.execution_result}\nupdate_json_context={self.update_json_context}"
 
 
 @dataclass
@@ -60,51 +65,34 @@ class ToolParameter:
     description: str
     required: bool = True
 
-
 @dataclass
 class ToolDefinition:
     name: str
     description: str
     parameters: t.List[ToolParameter]
     execution_function: t.Callable
+    update_json_context: bool = False
+    max_count_of_executed_calls: int = 5
 
 
 def format_tool_description(tool: ToolDefinition) -> str:
     """Formats a single tool's description for the prompt."""
     param_desc = ",\n".join([f'"{p.name}": ... \\ {p.type} - ({p.description})' for p in tool.parameters])
-    return f"//{tool.description}\n- {tool.name}({{{param_desc}}})"
+    return f"//{tool.description}\n- {tool.name}({{{param_desc}}})\nCan be called {tool.max_count_of_executed_calls} times.\n"
 
 
 def inject_tool_prompts(
-    messages: t.List[dict],
     available_tools: t.List[ToolDefinition],
     context: t.Dict[str, str]
-    ) -> t.List[dict]:
+    ) -> None:
     """Injects tool descriptions and usage instructions into the system prompt."""
     if not available_tools:
         logger.debug("[inject_tool_prompts] No tools available. Returning original messages.")
-        return messages
+        return 
 
-    tool_descriptions = "\n".join([format_tool_description(tool) for tool in available_tools])
+    tool_descriptions = "\n\n".join([format_tool_description(tool) for tool in available_tools])
     tool_system_prompt = get_tool_system_prompt(tool_descriptions, context)
-    # Find system prompt or prepend to user prompt
-    modified_messages = list(messages) # Create a copy
-    found_system = False
-    for i, msg in enumerate(modified_messages):
-        if msg.get("role") == "system":
-            # Append to existing system prompt
-            modified_messages[i]["content"] = f"{msg.get('content', '')}\n\n{tool_system_prompt}"
-            logger.debug(f"[inject_tool_prompts] Injected tool system prompt:\n{modified_messages[i]['content']}")
-            found_system = True
-            break
-
-    if not found_system:
-        # Prepend a new system message
-        modified_messages.insert(0, {"role": "system", "content": tool_system_prompt})
-
-        logger.debug(f"[inject_tool_prompts] Msg not found. Injected tool system prompt as a first msg :\n{tool_system_prompt}")
-    return modified_messages
-
+    context['tool_system_prompt'] = tool_system_prompt or ''
 
 def parse_tool_call_block(text_response: str) -> t.Optional[ToolCallResult]:
     """
@@ -197,16 +185,19 @@ def handle_tool_call(current_stream_part_content, tool_registry) -> ToolCallResu
     logger.info(f"Custom tool call block parsed: {tool_name}")
 
     # Execute the tool and get result
-    tool_result_str = call_function(tool_name, parameters, tool_registry=tool_registry)
+    tool_function = tool_registry.get(tool_name)
+    tool_result = call_function(tool_name, parameters, tool_registry=tool_registry)
+    logger.info(f"Tool '{tool_name}' executed with result: {tool_result}")
     
     return ToolCallResult(
         content=current_stream_part_content,
         has_tool_call=True,
+        update_json_context=tool_function.update_json_context if tool_function else False,
         tool_name=tool_name,
         parameters=parameters,
-        execution_result=tool_result_str,
+        execution_result=tool_result,
     )
 
 
 def format_tool_result_message(tool_result: ToolCallResult):
-    return f'\n<{TOOL_CALL_RESULT_NAME}="{tool_result.tool_name}">\n{json.dumps(tool_result.execution_result)}\n</{TOOL_CALL_RESULT_NAME}>\n## Please, Analyze tool_call_result! Answer next using the provided response from the user'
+    return f'\n<{TOOL_CALL_RESULT_NAME}="{tool_result.tool_name}">\n{json.dumps(tool_result.execution_result)}\n</{TOOL_CALL_RESULT_NAME}>\n'

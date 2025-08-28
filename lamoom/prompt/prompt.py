@@ -19,7 +19,6 @@ class Prompt(BasePrompt):
     You can add chats with different priorities to the pipe thinking just about the order of chats.
     When you initialize a Prompt, chats will be sorted by priority and then by order of adding.
     """
-
     id: str = None
     max_tokens: int = None
     min_sample_tokens: int = settings.DEFAULT_SAMPLE_MIN_BUDGET
@@ -52,7 +51,7 @@ class Prompt(BasePrompt):
             tiktoken_encoding=ai_attempt.tiktoken_encoding(),
             model_max_tokens=self.get_max_tokens(ai_attempt),
             min_sample_tokens=self.min_sample_tokens,
-            reserved_tokens_budget_for_sampling=self.reserved_tokens_budget_for_sampling,
+            reserved_tokens_budget_for_sampling=self.reserved_tokens_budget_for_sampling
         )
 
     def dump(self) -> dict:
@@ -83,7 +82,7 @@ class Prompt(BasePrompt):
     def service_load(cls, data) -> "Prompt":
         prompt = cls(
             id=data["prompt_id"],
-            max_tokens=data["max_tokens"],
+            max_tokens=data.get("max_tokens", settings.DEFAULT_MAX_BUDGET),
             min_sample_tokens=data.get("min_sample_tokens") or cls.min_sample_tokens,
             reserved_tokens_budget_for_sampling=data.get(
                 "reserved_tokens_budget_for_sampling"
@@ -103,7 +102,7 @@ class Prompt(BasePrompt):
             ]
         return cls(
             id=data["id"],
-            max_tokens=data["max_tokens"],
+            max_tokens=data.get("max_tokens"),
             min_sample_tokens=data.get("min_sample_tokens"),
             reserved_tokens_budget_for_sampling=data.get(
                 "reserved_tokens_budget_for_sampling"

@@ -53,7 +53,7 @@ class AzureAIModel(OpenAIModel):
         if not realm_data:
             raise ValueError(f"Realm data for {self.realm} not found in client_secrets")
         return AzureOpenAI(
-            api_version=realm_data.get("api_version", "2023-07-01-preview"),
+            api_version=realm_data.get("api_version", "2024-12-01-preview"),
             azure_endpoint=realm_data["azure_endpoint"],
             api_key=realm_data["api_key"],
         )

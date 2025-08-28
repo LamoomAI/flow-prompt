@@ -58,7 +58,7 @@ publish-test-prerelease:
 
 
 publish-release:
-	poetry config pypi-token.pypi "$(PYPI_API_KEY)"
+	poetry config pypi-token.pypi "$(PYPI_PROD_API_KEY)"
 	poetry version patch
 	poetry build
 	poetry publish

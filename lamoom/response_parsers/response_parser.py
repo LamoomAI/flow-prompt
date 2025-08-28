@@ -4,9 +4,6 @@ import logging
 
 import yaml
 
-from lamoom.exceptions import NotParsedResponseException
-from lamoom.responses import AIResponse
-
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +23,7 @@ class TaggedContent:
     parsed_content: any = None
 
 
-def get_yaml_from_response(response: AIResponse):
+def get_yaml_from_response(response: str) -> TaggedContent:
     content, start_ind, end_ind = _get_format_from_response(
         response, [Tag("```yaml", "```", 0, 0), Tag("```", "```", 0, 0)]
     )
@@ -44,10 +41,10 @@ def get_yaml_from_response(response: AIResponse):
         )
 
 
-def get_json_from_response(response: AIResponse, start_from: int = 0) -> TaggedContent:
+def get_json_from_response(response: str, start_from: int = 0) -> TaggedContent:
     content, start_ind, end_ind = _get_format_from_response(
         response,
-        [Tag("```json", "\n```", 0), Tag("```json", "```", 0), Tag("{", "}", 1)],
+        [Tag("```json", "\n```", 0), Tag("```json", "```", 0), Tag("{", "}", 1, is_right_find_end_ind=True)],
         start_from=start_from,
     )
     if content:
@@ -70,14 +67,16 @@ def get_json_from_response(response: AIResponse, start_from: int = 0) -> TaggedC
                 )
             except Exception as e:
                 logger.exception(f"Couldn't parse json:\n{content}")
-                raise NotParsedResponseException()
+                return get_json_from_response(
+                    response, start_from=start_ind + 1
+                )
 
 
 def _get_format_from_response(
-    response: AIResponse, tags: list[Tag], start_from: int = 0
+    response: str, tags: list[Tag], start_from: int = 0
 ):
     start_ind, end_ind = 0, -1
-    content = response.response[start_from:]
+    content = response[start_from:]
     for t in tags:
         start_ind = content.find(t.start_tag)
         if t.is_right_find_end_ind:

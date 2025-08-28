@@ -134,7 +134,7 @@ For Azure models format is the following:
 
 ```python
 response_llm = client.call(agent.id, context, model = "openai/o4-mini")
-response_llm = client.call(agent.id, context, model = "azure/useast/gpt-4o")
+response_llm = client.call(agent.id, context, model = "azure/useast/gpt-4.1-mini")
 ```
 
 Custom model string format is the following:

@@ -37,7 +37,7 @@ def test_stream(client: Lamoom):
     prompt.add("{text}")
     prompt.add("It's a system message, Hello {name}", role="assistant")
     
-    result: StreamingResponse = client.call(prompt.id, context, "azure/useast/gpt-4o", stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
+    result: StreamingResponse = client.call(prompt.id, context, "azure/useast/gpt-4.1-mini", stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     client.call(prompt.id, context, "claude/claude-3-haiku-20240307", stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     client.call(prompt.id, context, "gemini/gemini-1.5-flash", stream_function=stream_function, check_connection=stream_check_connection, params={"stream": True}, stream_params={"validate": True, "end": "", "flush": True})
     

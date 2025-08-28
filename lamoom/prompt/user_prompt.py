@@ -60,18 +60,28 @@ class UserPrompt(BasePrompt):
     min_sample_tokens: int
     reserved_tokens_budget_for_sampling: int = None
     safe_gap_tokens: int = settings.SAFE_GAP_TOKENS
+    shared_context : t.Dict = field(default_factory=dict)
 
     def __post_init__(self):
         self.encoding = tiktoken.get_encoding(self.tiktoken_encoding)
 
     def resolve(self, context: t.Dict, tool_registry: t.Dict[str, ToolDefinition]) -> CallingMessages:
         pipe = {}
+        context = {**self.shared_context, **context}
         prompt_budget = 0
         ordered_pipe = dict((value, i) for i, value in enumerate(self.pipe))
         state = State()
         state.left_budget = self.left_budget
+        inject_tool_prompts(list(tool_registry.values()), context)
+        i = 0
+
         for priority in sorted(self.priorities.keys()):
             for chat_value in self.priorities[priority]:
+                if i == 0:
+                    # Inject tool prompts into first message
+                    chat_value.content = chat_value.content + "\n\n{tool_system_prompt}\n"
+                i += 1
+                
                 r = [
                     p in state.fully_fitted_pipitas
                     for p in (chat_value.add_if_fitted_labels or [])
@@ -133,6 +143,8 @@ class UserPrompt(BasePrompt):
         flat_list: t.List[ChatMessage] = [
             item for sublist in final_pipe_with_order for item in sublist if item
         ]
+
+
         max_sample_budget = left_budget = state.left_budget + self.min_sample_tokens
         if self.reserved_tokens_budget_for_sampling:
             max_sample_budget = min(
@@ -175,6 +187,7 @@ class UserPrompt(BasePrompt):
                 )
                 left_budget = state.left_budget - messages_budget
                 if (
+                    not settings.CHECK_LEFT_BUDGET or
                     chat_value.continue_if_doesnt_fit
                     and left_budget > settings.EXPECTED_MIN_BUDGET_FOR_VALUABLE_INPUT
                 ):
@@ -191,6 +204,8 @@ class UserPrompt(BasePrompt):
         return messages_budget, values_to_add
 
     def is_enough_budget(self, state: State, required_budget: int) -> bool:
+        if not settings.CHECK_LEFT_BUDGET:
+            return True
         return state.left_budget >= required_budget
 
     def add_values_in_one_message(
@@ -222,13 +237,13 @@ class UserPrompt(BasePrompt):
 
                 left_budget = state.left_budget - one_message_budget
                 if (
+                    not settings.CHECK_LEFT_BUDGET or
                     chat_value.continue_if_doesnt_fit
                     and left_budget > settings.EXPECTED_MIN_BUDGET_FOR_VALUABLE_INPUT
                 ):
                     continue
                 break
 
-            one_message_budget += one_budget
             if one_message:
                 one_message.content += "\n" + value.content
             else:
@@ -270,7 +285,18 @@ class UserPrompt(BasePrompt):
                 logger.debug(f"[{self.task_name}]: is_value_not_empty failed {value}")
                 continue
             budget += self.calculate_budget_for_value(value)
-            result.append(value)
+            
+            if value.type == "base64_image":
+                budget += 85
+                result += [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url":  f"data:image/jpeg;base64,{value.content}"
+                        }
+                    }]
+            else:
+                result.append(value)
             if value.ref_name and value.ref_value:
                 state.references[value.ref_name].append(value.ref_value)
         return budget, result
