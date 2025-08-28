@@ -16,6 +16,22 @@ from lamoom.utils import current_timestamp_ms
 
 logger = logging.getLogger(__name__)
 
+summarized_result_prompt = '''
+-----
+Above your reasoning;
+Your task right now, ignore all tasks above just to summarize and write questions if you have any questions;
+But try to summarize, in a detailed way, to keep exactly what is appropriate for the context of the task above;
+1. Make first Meta:
+what is the main point of the tool_call_result from the {parsed_tool_call.name} task, and what it needed to analyze, does it found answers?
+2. Now when understanding abstract, write a detailed data to remember, with all details, that you can use later;
+
+(Your output will be used for a final result, not a provided tool_call_result)
+
+{parsed_tool_call.name} TOOL_CALL_RESULT:**
+```
+{parsed_tool_call.execution_result}
+```  
+'''
 class AI_MODELS_PROVIDER(Enum):
     OPENAI = "openai"
     AZURE = "azure"
@@ -242,13 +258,14 @@ class AIModel:
         current_messages: t.List[t.Dict[str, str]],
         max_tokens: t.Optional[int],
         tool_registry: t.Dict[str, ToolDefinition] = {},
-        max_tool_iterations: int = 5,   # Safety limit for sequential calls
+        max_tool_iterations: int = 10,   # Safety limit for sequential calls
         stream_function: t.Callable = None,
         check_connection: t.Callable = None,
         stream_params: dict = {},
         client_secrets: dict = {},
         modelname='',
         prompt: 'Prompt' = None,
+        user_prompt: 'BasePrompt' = None,
         context: str = '',
         test_data: dict = {},
         client: t.Any = None,
@@ -298,9 +315,44 @@ class AIModel:
                         continue
                     # Execute tool call
                     self.handle_tool_call(parsed_tool_call, tool_registry)
+                    print(f'handled tool call {parsed_tool_call}')
                     # Add messages to history
-                    logger.info(f'executed parsed_tool_call {parsed_tool_call}')
-                    stream_response.add_tool_result(parsed_tool_call)
+                    if parsed_tool_call.update_json_context:
+                        print(f'parsed_tool_call.update_json_context: {parsed_tool_call.update_json_context}')
+                        for key, value in parsed_tool_call.update_json_context.items():
+                            if isinstance(value, dict) and key in user_prompt.shared_context:
+                                user_prompt.shared_context[key] = {**user_prompt.shared_context[key], **value}
+                                print(f'updated shared_context key {key} with {value}:\n {user_prompt.shared_context[key]}')
+                            else:
+                                user_prompt.shared_context[key] = value
+                                print(f'set shared_context key {key} with {value}:\n {user_prompt.shared_context[key]}')
+                        self.save_call(stream_response, prompt, context, attempt=max_tool_iterations - attempts, client=client)
+                        continue
+                    print(f'executed {parsed_tool_call}')
+                    if len(json.dumps(parsed_tool_call.execution_result)) > settings.LAMOOM_TOOL_CALL_RESULT_LEN_TO_SUMMARIZE:
+                        print(f'Calling to summarize text of length {len(parsed_tool_call.execution_result)}')
+                        summarized_result = self.call(
+                            current_messages=current_messages + 
+                            [
+                                {"role": "assistant", "content": stream_response.content},
+                                {"role": "user", "content": summarized_result_prompt}
+                            ],
+                            max_tokens=max_tokens,
+                            client_secrets=client_secrets,
+                            modelname=modelname,
+                            prompt=prompt,
+                            user_prompt=user_prompt,
+                            context=context,
+                            test_data=test_data,
+                            client=client,
+                            **kwargs,
+                        )
+                        parsed_tool_call.execution_result = summarized_result.content
+                        print(f'summarized_result: {summarized_result.content}')
+                        stream_response.add_tool_result(parsed_tool_call)
+                    else:
+                        stream_response.add_tool_result(parsed_tool_call)
+
                     self.save_call(stream_response, prompt, context, attempt=max_tool_iterations - attempts, client=client)
                     attempts -= 1
                     continue
@@ -328,12 +380,13 @@ class AIModel:
         
         tool_function = tool_registry.get(function)
         if not tool_function:
-            logger.warning(f"Tool '{function}' not found in registry")
+            logger.warning(f"Tool '{function}' not found in registry: {tool_registry.keys()}")
             return json.dumps({"error": f"Tool '{function}' is not available."})
             
         try:
             logger.info(f"Executing tool '{function}' with parameters: {parameters}")
             result = tool_function.execution_function(**parameters)
+            tool_function.max_count_of_executed_calls -= 1
             logger.info(f"Tool '{function}' executed successfully")
             tool_call.execution_result = result
             return json.dumps({"result": result})

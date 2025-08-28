@@ -75,6 +75,7 @@ class StreamingResponse(AIResponse):
         self.is_detected_tool_call = False
         self.content = ''
         self.reasoning = ''
+        self.started_tmst = current_timestamp_ms()
 
     def set_streaming(self):
         if not self.started_tmst:

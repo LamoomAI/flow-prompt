@@ -114,7 +114,7 @@ class OpenAIModel(AIModel):
                 **kwargs,
                 **{"stream": True},
             }
-            if max_tokens:
+            if max_tokens > 0:
                 call_kwargs["max_completion_tokens"] = min(max_tokens, self.max_sample_budget)
             logger.info(f"Calling OpenAI with params: {call_kwargs}")
             completion = client.chat.completions.create(**call_kwargs)

@@ -4,7 +4,7 @@ import typing as t
 from dataclasses import dataclass
 
 from lamoom.ai_models.claude.constants import HAIKU, SONNET, OPUS
-from lamoom.ai_models.constants import C_4K
+from lamoom.ai_models.constants import C_200K, C_32K, C_4K
 from lamoom.responses import FINISH_REASON_ERROR, FINISH_REASON_FINISH, StreamingResponse
 from lamoom.ai_models.tools.base_tool import TOOL_CALL_END_TAG, TOOL_CALL_START_TAG
 from enum import Enum
@@ -23,8 +23,8 @@ class FamilyModel(Enum):
 
 @dataclass(kw_only=True)
 class ClaudeAIModel(AIModel):
-    max_tokens: int = C_4K
     api_key: str = None
+    max_tokens: int = C_32K
     provider: AI_MODELS_PROVIDER = AI_MODELS_PROVIDER.CLAUDE
     family: str = None
 
@@ -54,6 +54,7 @@ class ClaudeAIModel(AIModel):
                 last_role = message.get("role")
             else:
                 result[-1]["content"] += message.get("content")
+        print(f'Unified messages: {result}')
         return result
 
     def streaming(
@@ -80,13 +81,14 @@ class ClaudeAIModel(AIModel):
             }
             # Extract system prompt if present
             system_prompt = []
+            print(f'length of unified_messages: {len(unified_messages)}')
             for i, msg in enumerate(unified_messages):
                 if msg.get('role') == "system":
-                    system_prompt.append(unified_messages.pop(i- len(system_prompt)).get('content'))
-            
+                    system_prompt.append(unified_messages.pop(i - len(system_prompt)).get('content'))
+            print(f'Claude unified_messages: {unified_messages}')
             if system_prompt:
                 call_kwargs["system"] = '\n'.join(system_prompt)
-            
+            print(f'Claude call_kwargs: {call_kwargs}')
             with client.messages.stream(**call_kwargs) as stream:
                 for text_chunk in stream.text_stream:
                     if check_connection and not check_connection(**stream_params):
@@ -136,9 +138,13 @@ class ClaudeAIModel(AIModel):
         return f"Claude {self.family}"
 
     def get_params(self) -> t.Dict[str, t.Any]:
+        if self.max_tokens > 0:
+            return {
+                "model": self.model,
+                "max_tokens": self.max_tokens,
+            }
         return {
-            "model": self.model,
-            "max_tokens": self.max_tokens,
+            "model": self.model
         }
 
     def get_metrics_data(self) -> t.Dict[str, t.Any]:

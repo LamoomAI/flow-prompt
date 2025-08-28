@@ -9,7 +9,7 @@ from lamoom.prompt.chat import ChatsEntity
 logger = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+@dataclass
 class BasePrompt:
     priorities: t.Dict[int, t.List[ChatsEntity]] = field(
         default_factory=lambda: defaultdict(list)

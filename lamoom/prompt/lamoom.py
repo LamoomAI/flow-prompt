@@ -285,7 +285,6 @@ class Lamoom:
             # Inject tool prompts into first message
             calling_messages = user_prompt.resolve(calling_context, prompt.tool_registry)
             messages = calling_messages.get_messages()
-            messages = inject_tool_prompts(messages, list(prompt.tool_registry.values()), calling_context)
             logger.info(f'self.clients: {self.clients}, [current_attempt.ai_model.provider_name]: {current_attempt.ai_model.provider_name}')
             for _ in range(0, count_of_retries):
                 try:
@@ -299,6 +298,7 @@ class Lamoom:
                         client_secrets=self.clients[current_attempt.ai_model.provider_name],
                         modelname=model,
                         prompt=prompt,
+                        user_prompt=user_prompt,
                         context=context,
                         test_data=test_data,
                         client=self,
@@ -356,7 +356,7 @@ class Lamoom:
                 response.prompt["version"] = response.version
                 return Prompt.service_load(response.prompt)
             except Exception as e:
-                logger.exception(f"Error while getting prompt {prompt_id}: {e}")
+                logger.info(f"Error while getting prompt {prompt_id}: {e}")
                 if prompt:
                     return prompt
                 else:
